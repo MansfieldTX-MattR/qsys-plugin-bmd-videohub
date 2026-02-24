@@ -1,0 +1,1 @@
+table.insert(ctrls,{Name = "Status",ControlType = "Indicator",IndicatorType = "Status",PinStyle = "Output",UserPin = true,Count = 1})
