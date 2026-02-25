@@ -12,7 +12,7 @@ function GetPrettyName(props)
   return "Base Plugin " .. PluginInfo.Version
 end
 
-
+--[[ #include "geometry.lua" ]]
 
 --[[ #include "pages.lua" ]]
 
