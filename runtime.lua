@@ -167,13 +167,24 @@ VideoHubSections = {
 }
 
 ---@class VideoHubDevice
-VideoHubDevice = {
-  Model = "",
-  Name = "",
-  UniqueId = "",
-  InputCount = 0,
-  OutputCount = 0,
-}
+---@field Model string
+---@field Name string
+---@field UniqueId string
+---@field InputCount number
+---@field OutputCount number
+VideoHubDevice = {}
+function VideoHubDevice:new()
+  local o = {
+    Model = "",
+    Name = "",
+    UniqueId = "",
+    InputCount = 0,
+    OutputCount = 0,
+  }
+  setmetatable(o, self)
+  self.__index = self
+  return o
+end
 
 ---@class VideoHub
 VideoHub = {
@@ -181,7 +192,7 @@ VideoHub = {
     ---@type string?
     ProtocolVersion = nil,
   },
-  Device = VideoHubDevice,
+  Device = VideoHubDevice:new(),
   -- Device = {
   --   ---@type string?
   --   Model = nil,
@@ -306,6 +317,14 @@ VideoHub = {
     -- return ack
   end,
 }
+
+function VideoHub.reset()
+  VideoHub.Preamble.ProtocolVersion = nil
+  VideoHub.Device = VideoHubDevice:new()
+  VideoHub.InputLabels = {}
+  VideoHub.OutputLabels = {}
+  VideoHub.Crosspoints = {}
+end
 
 
 ---@class VideoHubChangeEvents
@@ -719,6 +738,8 @@ function Connect()  -- function to connect the TCP socket
     print("Invalid IP or port, cannot connect")
     return
   end
+  VideoHubState.reset()
+  VideoHub.reset()
   TelnetState.SetStatus(StatusType.Initializing)
   Telnet:Connect(ip, port)
   VideoHubState.readEnabled = true
