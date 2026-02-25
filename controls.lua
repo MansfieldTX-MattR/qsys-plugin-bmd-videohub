@@ -18,7 +18,8 @@ function GetControls(props)
   --   statusControl,
   -- }
 
-
+  local inputCount = props["Max Input Count"].Value or 12
+  local outputCount = props["Max Output Count"].Value or 12
 
   ---@type DesignControl[]
   local controls = {
@@ -82,7 +83,7 @@ function GetControls(props)
       ControlType = "Knob",
       ControlUnit = "Integer",
       Min = 1,
-      Max = props["Max Input Count"].Value,
+      Max = inputCount,
       PinStyle = "Output",
       UserPin = true,
     },
@@ -91,69 +92,35 @@ function GetControls(props)
       ControlType = "Knob",
       ControlUnit = "Integer",
       Min = 1,
-      Max = props["Max Output Count"].Value,
+      Max = outputCount,
       PinStyle = "Output",
       UserPin = true,
     },
-    -- {
-    --   Name = "InputLabels",
-    --   ControlType = "Text",
-
-    -- }
-  }
-
-  ---@type DesignControlKnob[]
-  local crosspointControls = {}
-
-  ---@type DesignControlText[]
-  local inputLabels = {}
-
-  ---@type DesignControlText[]
-  local outputLabels = {}
-
-  local inputCount = props["Max Input Count"].Value or 12
-  local outputCount = props["Max Output Count"].Value or 12
-
-  for i = 1, inputCount do
-    ---@type DesignControlText
-    local inputLabelControl = {
-      Name = "InputLabel_" .. i,
+    {
+      Name = "InputLabels",
       ControlType = "Text",
       PinStyle = "Both",
       UserPin = true,
-    }
-    table.insert(inputLabels, inputLabelControl)
-
-    ---@type DesignControlText
-    local outputLabelControl = {
-      Name = "OutputLabel_" .. i,
+      Count = inputCount,
+    },
+    {
+      Name = "OutputLabels",
       ControlType = "Text",
       PinStyle = "Both",
       UserPin = true,
-    }
-    table.insert(outputLabels, outputLabelControl)
-
-    ---@type DesignControlKnob
-    local crosspointControl = {
-      Name = "Crosspoint_" .. i,
+      Count = outputCount,
+    },
+    {
+      Name = "Crosspoints",
       ControlType = "Knob",
       ControlUnit = "Integer",
       Min = 1,
-      Max = outputCount,
+      Max = inputCount,
       PinStyle = "Both",
       UserPin = true,
+      Count = outputCount,
     }
-    table.insert(crosspointControls, crosspointControl)
-  end
-  function MergeTables(t1, t2)
-    for _, v in ipairs(t2) do
-      table.insert(t1, v)
-    end
-    return t1
-  end
-  controls = MergeTables(controls, inputLabels)
-  controls = MergeTables(controls, outputLabels)
-  controls = MergeTables(controls, crosspointControls)
+  }
 
   -- -@class Controls
   -- -@field Status TextControllerControls

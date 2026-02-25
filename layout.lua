@@ -18,15 +18,20 @@ end
 
 
 ---@param rect Rectangle
+---@param prettyName? string
 ---@return LayoutText
-function CreateTextInput(rect)
-  return {
+function CreateTextInput(rect, prettyName)
+  local o = {
     Style = "Text",
     Position = rect.Position:AsArray(),
     Size = rect.Size:AsArray(),
     IsReadOnly = false,
     FontSize = 9,
   }
+  if prettyName then
+    o.PrettyName = prettyName
+  end
+  return o
 end
 
 ---@param text string
@@ -46,15 +51,20 @@ end
 
 ---@param outerRect Rectangle
 ---@param size XYPoint
+---@param prettyName? string
 ---@return LayoutKnob
-function CreateKnob(outerRect, size)
+function CreateKnob(outerRect, size, prettyName)
   local knobSize = math.min(size:X(), size:Y())
   local knobBox = Rectangle.FromBottomCenter(outerRect:BottomCenter(), XYPoint:new(knobSize, knobSize))
-  return {
+  local o = {
     Style = "Knob",
     Position = knobBox.Position:AsArray(),
     Size = knobBox.Size:AsArray(),
   }
+  if prettyName then
+    o.PrettyName = prettyName
+  end
+  return o
 end
 
 
@@ -135,14 +145,19 @@ function GetControlLayout(props)
 
     for i = 1, inputCount do
       local gridRect = gridRects[1][i]
-      layout["InputLabel_" .. i] = CreateTextInput(gridRect)
+      -- The `~` in "PrettyName" creates a sub-tree for the pins in the UI
+      local prettyName = string.format("InputLabels~%i", i)
+      -- Since the control is an array (count>1), the key becomes `<ControlName> <index>`
+      layout["InputLabels " .. i] = CreateTextInput(gridRect, prettyName)
     end
 
     for i = 1, outputCount do
       local gridRect = gridRects[2][i]
-      layout["OutputLabel_" .. i] = CreateTextInput(gridRect)
+      local prettyName = string.format("OutputLabels~%i", i)
+      layout["OutputLabels " .. i] = CreateTextInput(gridRect, prettyName)
       local knobRect = gridRects[3][i]
-      layout["Crosspoint_" .. i] = CreateKnob(knobRect, XYPoint:new(knobHeight, knobHeight))
+      prettyName = string.format("Crosspoints~%i", i)
+      layout["Crosspoints " .. i] = CreateKnob(knobRect, XYPoint:new(knobHeight, knobHeight), prettyName)
       local labelRect = gridRects[4][i]
       local crosspointLabel = CreateLabel(tostring(i), labelRect)
       table.insert(graphics, crosspointLabel)

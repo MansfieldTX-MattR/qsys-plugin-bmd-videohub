@@ -898,12 +898,12 @@ OutputLabelControls = {}
 CrosspointControls = {}
 
 for i = 1, Properties["Max Input Count"].Value or 12 do
-  InputLabelControls[i] = Controls["InputLabel_"..i]
+  InputLabelControls[i] = Controls.InputLabels[i]
 end
 
 for i = 1, Properties["Max Output Count"].Value or 12 do
-  OutputLabelControls[i] = Controls["OutputLabel_"..i]
-  CrosspointControls[i] = Controls["Crosspoint_"..i]
+  OutputLabelControls[i] = Controls.OutputLabels[i]
+  CrosspointControls[i] = Controls.Crosspoints[i]
 end
 
 
