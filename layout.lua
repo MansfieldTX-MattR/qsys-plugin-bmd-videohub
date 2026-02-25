@@ -153,7 +153,7 @@ function GetControlLayout(props)
     local labelGap = XYPoint:new(4, 4)
     local textFieldSize = XYPoint:new(180, 16)
 
-    local numRows = 4
+    local numRows = 9
     local totalHeight = (labelSize:Y() * numRows) + (labelGap:Y() * (numRows - 1))
     local outerRect = Rectangle:new(
       XYPoint:new(0, 0),
@@ -199,6 +199,11 @@ function GetControlLayout(props)
       "Port",
       "Telnet Enable",
       "Status",
+      "Device Model",
+      "Device Name",
+      "Device ID",
+      "Num Inputs",
+      "Num Outputs",
     }
 
     ---@type LayoutLabel[]
@@ -255,6 +260,54 @@ function GetControlLayout(props)
       IsReadOnly = true,
       FontSize = 9,
     }
+
+    ---@type { [string]: LayoutText }
+    local deviceTexts = {
+      DeviceModel = {
+        Style = "Text",
+        Position = textFieldRects[5].Position:AsArray(),
+        Size = textFieldRects[5].Size:AsArray(),
+        IsReadOnly = true,
+        FontSize = 9,
+      },
+      DeviceName = {
+        Style = "Text",
+        Position = textFieldRects[6].Position:AsArray(),
+        Size = textFieldRects[6].Size:AsArray(),
+        IsReadOnly = true,
+        FontSize = 9,
+      },
+      DeviceId = {
+        Style = "Text",
+        Position = textFieldRects[7].Position:AsArray(),
+        Size = textFieldRects[7].Size:AsArray(),
+        IsReadOnly = true,
+        FontSize = 9,
+      },
+      NumInputs = {
+        Style = "Text",
+        Position = textFieldRects[8].Position:AsArray(),
+        Size = textFieldRects[8].Size:AsArray(),
+        IsReadOnly = true,
+        FontSize = 9,
+        Color = {255, 255, 255},
+        TextBoxStyle = "Normal",
+      },
+      NumOutputs = {
+        Style = "Text",
+        Position = textFieldRects[9].Position:AsArray(),
+        Size = textFieldRects[9].Size:AsArray(),
+        IsReadOnly = true,
+        FontSize = 9,
+        Color = {255, 255, 255},
+        TextBoxStyle = "Normal",
+      },
+    }
+
+    for key, label in pairs(deviceTexts) do
+      layout[key] = label
+    end
+
 
     layout["IPAddress"] = ipGraphic
     layout["Port"] = portGraphic

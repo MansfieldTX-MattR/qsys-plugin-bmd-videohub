@@ -853,6 +853,16 @@ Controls.TelnetEnable.EventHandler = function()
   end
 end
 
+
+VideoHubChangeEvents.Device:RegisterCallback(function()
+  Controls.DeviceModel.String = VideoHub.Device.Model
+  Controls.DeviceName.String = VideoHub.Device.Name
+  Controls.DeviceId.String = VideoHub.Device.UniqueId
+  Controls.NumInputs.Value = VideoHub.Device.InputCount
+  Controls.NumOutputs.Value = VideoHub.Device.OutputCount
+end)
+
+
 VideoHubChangeEvents.InputLabels:RegisterCallback(function()
   -- print("Input label changed")
   for i, label in ipairs(VideoHub.InputLabels) do
