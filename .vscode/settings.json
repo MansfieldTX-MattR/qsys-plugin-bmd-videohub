@@ -6,5 +6,9 @@
   },
   "files.autoSave": "off",
   "files.autoSaveDelay": 500,
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+  "Lua.workspace.library": [
+    "${addons}/qsys/module/library",
+    "${workspaceFolder}/luatypes"
+  ]
 }
