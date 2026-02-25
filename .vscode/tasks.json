@@ -14,6 +14,9 @@
             "windows": {
                 "command": ".\\plugincompile\\copy_plugin.cmd \"${workspaceFolder}\" \"${workspaceFolderBasename}\"",
                 "options": {
+                    "env": {
+                        "PATH": "${env:PATH};${userHome}\\AppData\\Local\\Programs\\Git\\usr\\bin"
+                    },
                     "shell": {
                         "executable": "cmd.exe",
                         "args": [ "/c"  ]
@@ -34,6 +37,9 @@
             "windows": {
                 "command": ".\\plugincompile\\PLUGCC.exe \"${workspaceFolderBasename}\" \"${workspaceFolder}\\plugin.lua\"",
                 "options": {
+                    "env": {
+                        "PATH": "${env:PATH};${userHome}\\AppData\\Local\\Programs\\Git\\usr\\bin"
+                    },
                     "shell": {
                         "executable": "cmd.exe",
                         "args": [ "/c"  ]
@@ -54,6 +60,9 @@
             "windows": {
                 "command": "sh .\\plugincompile\\compile_plugin.sh ${input:ver_inc}",
                 "options": {
+                    "env": {
+                        "PATH": "${env:PATH};${userHome}\\AppData\\Local\\Programs\\Git\\usr\\bin"
+                    },
                     "shell": {
                         "executable": "cmd.exe",
                         "args": [ "/c"  ]
@@ -64,7 +73,7 @@
                 "reveal": "always"
             },
             "problemMatcher": []
-        }
+        },
     ],
     "inputs": [
         {
