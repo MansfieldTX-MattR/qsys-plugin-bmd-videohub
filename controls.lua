@@ -47,7 +47,7 @@ function GetControls(props)
       Name = "TelnetEnable",
       ControlType = "Button",
       ButtonType = "Toggle",
-      DefaultValue = false,
+      DefaultValue = true,
       PinStyle = "Input",
       UserPin = true,
     },
