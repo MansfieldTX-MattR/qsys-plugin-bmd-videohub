@@ -75,8 +75,8 @@ function GetControls(props)
   ---@type DesignControlText[]
   local outputLabels = {}
 
-  local inputCount = props["Input Count"].Value or 12
-  local outputCount = props["Output Count"].Value or 12
+  local inputCount = props["Max Input Count"].Value or 12
+  local outputCount = props["Max Output Count"].Value or 12
 
   for i = 1, inputCount do
     ---@type DesignControlText

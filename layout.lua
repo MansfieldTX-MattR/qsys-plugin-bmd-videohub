@@ -69,8 +69,8 @@ function GetControlLayout(props)
 
   local CurrentPage = PageNames[props["page_index"].Value]
   if CurrentPage == "Control" then
-    local inputCount = props["Input Count"].Value
-    local outputCount = props["Output Count"].Value
+    local inputCount = props["Max Input Count"].Value
+    local outputCount = props["Max Output Count"].Value
     local columnWidth = 64
     local columnGap = 4
     local textFieldHeight = 16

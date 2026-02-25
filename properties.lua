@@ -6,16 +6,16 @@ function GetProperties()
   ---@class DesignProperties
   local DesignProperties = {
     ---@type DesignPropertyInteger
-    ["Input Count"] = {
-      Name = "Input Count",
+    ["Max Input Count"] = {
+      Name = "Max Input Count",
       Type = "integer",
       Value = 12,
       Min = 1,
       Max = 128,
     },
     ---@type DesignPropertyInteger
-    ["Output Count"] = {
-      Name = "Output Count",
+    ["Max Output Count"] = {
+      Name = "Max Output Count",
       Type = "integer",
       Value = 12,
       Min = 1,
@@ -26,11 +26,11 @@ function GetProperties()
 
 
   return {
-    DesignProperties["Input Count"],
-    DesignProperties["Output Count"],
+    DesignProperties["Max Input Count"],
+    DesignProperties["Max Output Count"],
   }
 end
 
 ---@class Properties
----@field ["Input Count"] TextControllerControls
----@field ["Output Count"] TextControllerControls
+---@field ["Max Input Count"] TextControllerControls
+---@field ["Max Output Count"] TextControllerControls

@@ -814,11 +814,11 @@ OutputLabelControls = {}
 ---@type TextControllerControls[]
 CrosspointControls = {}
 
-for i = 1, Properties["Input Count"].Value or 12 do
+for i = 1, Properties["Max Input Count"].Value or 12 do
   InputLabelControls[i] = Controls["InputLabel_"..i]
 end
 
-for i = 1, Properties["Output Count"].Value or 12 do
+for i = 1, Properties["Max Output Count"].Value or 12 do
   OutputLabelControls[i] = Controls["OutputLabel_"..i]
   CrosspointControls[i] = Controls["Crosspoint_"..i]
 end
