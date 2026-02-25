@@ -61,6 +61,14 @@ function GetControls(props)
       Count = 1,
     },
     {
+      Name = "ControlLockout",
+      ControlType = "Button",
+      ButtonType = "Toggle",
+      DefaultValue = false,
+      PinStyle = "Input",
+      UserPin = true,
+    },
+    {
       Name = "DeviceModel",
       ControlType = "Text",
       PinStyle = "Output",

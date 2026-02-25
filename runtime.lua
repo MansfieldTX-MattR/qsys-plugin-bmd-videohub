@@ -8,6 +8,9 @@ StatusType = {
   Initializing = 5,
 }
 
+function ControlsLockedOut()
+  return Controls.ControlLockout.Boolean
+end
 
 
 Controls.TelnetActive.Boolean = false
@@ -914,6 +917,11 @@ for i, inputLabelControl in ipairs(InputLabelControls) do
     if VideoHub.Device.InputCount < i then
       return
     end
+    if ControlsLockedOut() then
+      local currentLabel = VideoHub.InputLabels[i]
+      Timer.CallAfter(function() ctl.String = currentLabel end, 0.1)
+      return
+    end
     local label = ctl.String
     print("Input "..i.." label changed to "..label..", current is "..VideoHub.InputLabels[i])
     if VideoHub.InputLabels[i] == label then
@@ -929,6 +937,11 @@ for i, outputLabelControl in ipairs(OutputLabelControls) do
     if VideoHub.Device.OutputCount < i then
       return
     end
+    if ControlsLockedOut() then
+      local currentLabel = VideoHub.OutputLabels[i]
+      Timer.CallAfter(function() ctl.String = currentLabel end, 0.1)
+      return
+    end
     local label = ctl.String
     print("Output "..i.." label changed to "..label..", current is "..VideoHub.OutputLabels[i])
     if VideoHub.OutputLabels[i] == label then
@@ -942,6 +955,11 @@ for i, outputIndex in ipairs(CrosspointControls) do
   ---@ param ctl TextControllerControls
   outputIndex.EventHandler = function(ctl)
     if VideoHub.Device.OutputCount < i then
+      return
+    end
+    if ControlsLockedOut() then
+      local currentInputIndex = VideoHub.Crosspoints[i]
+      Timer.CallAfter(function() ctl.Value = currentInputIndex end, 0.1)
       return
     end
     local inputIndex = ctl.Value

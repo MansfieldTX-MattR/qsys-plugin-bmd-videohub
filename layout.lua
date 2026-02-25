@@ -168,7 +168,7 @@ function GetControlLayout(props)
     local labelGap = XYPoint:new(4, 4)
     local textFieldSize = XYPoint:new(180, 16)
 
-    local numRows = 9
+    local numRows = 10
     local totalHeight = (labelSize:Y() * numRows) + (labelGap:Y() * (numRows - 1))
     local outerRect = Rectangle:new(
       XYPoint:new(0, 0),
@@ -219,6 +219,7 @@ function GetControlLayout(props)
       "Device ID",
       "Num Inputs",
       "Num Outputs",
+      "Control Lockout",
     }
 
     ---@type LayoutLabel[]
@@ -323,11 +324,22 @@ function GetControlLayout(props)
       layout[key] = label
     end
 
+    ---@type LayoutButton
+    local controlLockoutGraphic = {
+      Style = "Button",
+      ButtonStyle = "Toggle",
+      Position = textFieldRects[10].Position:AsArray(),
+      IsReadOnly = false,
+      Size = textFieldRects[10].Size:AsArray(),
+      FontSize = 9,
+    }
+
 
     layout["IPAddress"] = ipGraphic
     layout["Port"] = portGraphic
     layout["TelnetEnable"] = telnetGraphic
     layout["Status"] = statusGraphic
+    layout["ControlLockout"] = controlLockoutGraphic
     for _, label in ipairs(labels) do
       table.insert(graphics, label)
     end
