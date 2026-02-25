@@ -5,11 +5,11 @@
 --[[ #include "info.lua" ]]
 
 function GetColor(props)
-  return { 102, 102, 102 }
+  return PluginInfo.Color
 end
 
 function GetPrettyName(props)
-  return "Base Plugin " .. PluginInfo.Version
+  return PluginInfo.PrettyName .. " " .. PluginInfo.Version
 end
 
 --[[ #include "geometry.lua" ]]
