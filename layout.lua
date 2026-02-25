@@ -1,4 +1,63 @@
 
+
+---@param title string
+---@param rect Rectangle
+---@return LayoutGroupBox
+function CreateGroupBox(title, rect)
+  return {
+    Type = "GroupBox",
+    Position = rect.Position:AsArray(),
+    Size = XYPoint:new(rect:Width(), rect:Height()):AsArray(),
+    Text = title,
+    FontSize = 9,
+    HTextAlign = "Left",
+    VTextAlign = "Center",
+    ZOrder = -1,
+  }
+end
+
+
+---@param rect Rectangle
+---@return LayoutText
+function CreateTextInput(rect)
+  return {
+    Style = "Text",
+    Position = rect.Position:AsArray(),
+    Size = rect.Size:AsArray(),
+    IsReadOnly = false,
+    FontSize = 9,
+  }
+end
+
+---@param text string
+---@param rect Rectangle
+---@return LayoutLabel
+function CreateLabel(text, rect)
+  return {
+    Type = "Label",
+    Text = text,
+    Position = rect.Position:AsArray(),
+    Size = rect.Size:AsArray(),
+    FontSize = 9,
+    HTextAlign = "Center",
+    VTextAlign = "Center",
+  }
+end
+
+---@param outerRect Rectangle
+---@param size XYPoint
+---@return LayoutKnob
+function CreateKnob(outerRect, size)
+  local knobSize = math.min(size:X(), size:Y())
+  local knobBox = Rectangle.FromBottomCenter(outerRect:BottomCenter(), XYPoint:new(knobSize, knobSize))
+  return {
+    Style = "Knob",
+    Position = knobBox.Position:AsArray(),
+    Size = knobBox.Size:AsArray(),
+  }
+end
+
+
 ---@param props Properties
 ---@return table<string, DesignLayoutItem>
 ---@return DesignGraphicsItem[]
@@ -12,164 +71,154 @@ function GetControlLayout(props)
   if CurrentPage == "Control" then
     local inputCount = props["Input Count"].Value
     local outputCount = props["Output Count"].Value
-    local xOffset = 64
     local columnWidth = 64
     local columnGap = 4
     local textFieldHeight = 16
     local knobHeight = 32
-    local groupBoxPadding = { 4, 4 }
+    local groupBoxPadding = XYPoint:new(4, 20)
     local yGap = 4
+    local outerRect = Rectangle:new(
+      XYPoint:new(0, 0),
+      XYPoint:new(
+        (columnWidth * inputCount) + (columnGap * (inputCount - 1)) + (groupBoxPadding:X() * 2),
+        ((textFieldHeight + yGap) * 3) + (groupBoxPadding:Y() * 2)
+      )
+    )
+    local textFieldRowOuterSize = XYPoint:new(outerRect:Width(), textFieldHeight + groupBoxPadding:Y())
+    local inputLabelGroupBoxRect = Rectangle:new(outerRect.Position, textFieldRowOuterSize)
+    local outputLabelGroupBoxRect = inputLabelGroupBoxRect + inputLabelGroupBoxRect:BottomLeft() + XYPoint:new(0, yGap)
+    local crosspointGroupBoxRect = Rectangle:new(
+      outputLabelGroupBoxRect:BottomLeft() + XYPoint:new(0, yGap),
+      XYPoint:new(outerRect:Width(), knobHeight + groupBoxPadding:Y())
+    )
+    local bottomLabelRowRect = Rectangle:new(
+      crosspointGroupBoxRect:BottomLeft() + XYPoint:new(0, yGap),
+      textFieldRowOuterSize
+    )
 
-    local totalWidth = (columnWidth * inputCount) + (columnGap * (inputCount - 1))
-    local totalHeight = math.max(textFieldHeight, knobHeight) + yGap
+    local groupBoxRects = {
+      inputLabelGroupBoxRect,
+      outputLabelGroupBoxRect,
+      crosspointGroupBoxRect,
+      bottomLabelRowRect,
+    }
 
-    ---@param title string
-    ---@param yPosition number
-    ---@return LayoutGroupBox
-    function CreateGroupBox(title, yPosition)
-       return {
-        Type = "GroupBox",
-        Position = { xOffset, yPosition },
-        Size = { totalWidth + (groupBoxPadding[1] * 2), totalHeight + (groupBoxPadding[2] * 2) },
-        Text = title,
-        FontSize = 9,
-        HTextAlign = "Left",
-        VTextAlign = "Center",
-        ZOrder = -1,
-      }
+    ---@type Rectangle[]
+    local groupBoxInnerRects = {}
+    for i, groupBoxRect in ipairs(groupBoxRects) do
+      local innerHeight = i == 3 and knobHeight or textFieldHeight
+      local innerRect = Rectangle.FromCenter(
+        groupBoxRect:Center(),
+        XYPoint:new(groupBoxRect:Width() - (groupBoxPadding:X() * 2), innerHeight)
+      )
+      table.insert(groupBoxInnerRects, innerRect)
+    end
+
+    ---@type Rectangle[][]
+    local gridRects = {}
+    for i, innerRect in ipairs(groupBoxInnerRects) do
+      local numCols = (i == 1) and inputCount or outputCount
+      local cellRows = innerRect:Divide(XYPoint:new(numCols, 1))
+      table.insert(gridRects, cellRows[1])
     end
 
     local GroupBoxes = {
-      CreateGroupBox("Input Labels", 0),
-      CreateGroupBox("Output Labels", totalHeight + (groupBoxPadding[2] * 2) + yGap),
-      CreateGroupBox("Crosspoint Controls", (totalHeight + (groupBoxPadding[2] * 2) + yGap) * 2),
+      CreateGroupBox("Input Labels", groupBoxRects[1]),
+      CreateGroupBox("Output Labels", groupBoxRects[2]),
+      CreateGroupBox("Crosspoint Controls", groupBoxRects[3]),
+      CreateGroupBox("Labels", groupBoxRects[4]),
     }
 
     for _, groupBox in ipairs(GroupBoxes) do
       table.insert(graphics, groupBox)
     end
 
-    -- table.insert(graphics, CreateGroupBox("Input Labels", 0))
-    -- table.insert(graphics, CreateGroupBox("Output Labels", totalHeight + (groupBoxPadding[2] * 2) + yGap))
-    -- table.insert(graphics, CreateGroupBox("Crosspoint Controls", (totalHeight + (groupBoxPadding[2] * 2) + yGap) * 2))
-
-    -- ---@type LayoutGroupBox
-    -- local groupBox = {
-    --   Type = "GroupBox",
-    --   Position = { xOffset, 0 },
-    --   Size = { totalWidth + (groupBoxPadding[1] * 2), totalHeight + (groupBoxPadding[2] * 2) },
-    --   Text = "Input Labels",
-    --   FontSize = 9,
-    --   HTextAlign = "Left",
-    --   VTextAlign = "Center",
-    --   ZOrder = -1,
-    -- }
-    -- table.insert(graphics, groupBox)
-    -- groupBox.Position = { xOffset, groupBox.Position[2] + groupBox.Size[2] + yGap }
-    -- groupBox.Text = "Output Labels"
-    -- table.insert(graphics, groupBox)
-    -- groupBox.Position = { xOffset, groupBox.Position[2] + groupBox.Size[2] + yGap }
-    -- groupBox.Text = "Crosspoint Controls"
-    -- table.insert(graphics, groupBox)
-
-
     for i = 1, inputCount do
-      layout["InputLabel_" .. i] = {
-        Style = "Text",
-        Position = {
-          xOffset + groupBoxPadding[1] + ((i - 1) * (columnWidth + columnGap)),
-          GroupBoxes[1].Position[2] + GroupBoxes[1].Size[2],
-        },
-        Size = { columnWidth, textFieldHeight },
-        FontSize = 9,
-        HTextAlign = "Center",
-        VTextAlign = "Center",
-      }
+      local gridRect = gridRects[1][i]
+      layout["InputLabel_" .. i] = CreateTextInput(gridRect)
     end
 
     for i = 1, outputCount do
-      layout["OutputLabel_" .. i] = {
-        Style = "Text",
-        Position = {
-          xOffset + groupBoxPadding[1] + ((i - 1) * (columnWidth + columnGap)),
-          GroupBoxes[2].Position[2] + GroupBoxes[2].Size[2],
-        },
-        Size = { columnWidth, textFieldHeight },
-        FontSize = 9,
-        HTextAlign = "Center",
-        VTextAlign = "Center",
-      }
-
-      layout["Crosspoint_" .. i] = {
-        Style = "Knob",
-        Position = {
-          xOffset + groupBoxPadding[1] + ((i - 1) * (columnWidth + columnGap)) - ((knobHeight - columnWidth) / 2),
-          GroupBoxes[3].Position[2] + GroupBoxes[3].Size[2],
-        },
-        Size = { knobHeight, knobHeight },
-      }
-
-      -- one row with labelled numbers below
-
-      ---@type LayoutLabel
-      local label = {
-        Type = "Label",
-        Text = tostring(i),
-        Position = {
-          xOffset + groupBoxPadding[1] + ((i - 1) * (columnWidth + columnGap)),
-          GroupBoxes[3].Position[2] + (GroupBoxes[3].Size[2] * 3) + (yGap * 3)
-        },
-        Size = { columnWidth, textFieldHeight },
-        FontSize = 9,
-        HTextAlign = "Center",
-        VTextAlign = "Center",
-      }
-      table.insert(graphics, label)
+      local gridRect = gridRects[2][i]
+      layout["OutputLabel_" .. i] = CreateTextInput(gridRect)
+      local knobRect = gridRects[3][i]
+      layout["Crosspoint_" .. i] = CreateKnob(knobRect, XYPoint:new(knobHeight, knobHeight))
+      local labelRect = gridRects[4][i]
+      local crosspointLabel = CreateLabel(tostring(i), labelRect)
+      table.insert(graphics, crosspointLabel)
     end
   elseif CurrentPage == "Setup" then
 
-    local labelWidth = 64
-    local labelHeight = 16
-    local labelYGap = 4
-    local labelXGap = 4
+    local labelSize = XYPoint:new(64, 16)
+    local labelGap = XYPoint:new(4, 4)
+    local textFieldSize = XYPoint:new(96, 16)
+
+    local numRows = 4
+    local totalHeight = (labelSize:Y() * numRows) + (labelGap:Y() * (numRows - 1))
+    local outerRect = Rectangle:new(
+      XYPoint:new(0, 0),
+      XYPoint:new(
+        labelSize:X() + labelGap:X() + textFieldSize:X(),
+        totalHeight
+      )
+    )
+    local rowOuterRectGrid = outerRect:Divide(XYPoint:new(1, numRows))
+
+    ---@type Rectangle[]
+    local rowOuterRects = {}
+    for i = 1, numRows do
+      table.insert(rowOuterRects, rowOuterRectGrid[i][1])
+    end
+
+    ---@type Rectangle[]
+    local rowInnerRects = {}
+    for i, rowOuterRect in ipairs(rowOuterRects) do
+      local innerRect = Rectangle.FromCenter(
+        rowOuterRect:Center(),
+        XYPoint:new(outerRect:Width() - labelGap:X(), rowOuterRect:Height())
+      )
+      table.insert(rowInnerRects, innerRect)
+    end
+    local labelRects = {}
+    local textFieldRects = {}
+    for i, rowInnerRect in ipairs(rowInnerRects) do
+      local labelRect = Rectangle:new(
+        rowInnerRect.Position,
+        XYPoint:new(labelSize:X(), rowInnerRect:Height())
+      )
+      table.insert(labelRects, labelRect)
+      local textFieldRect = labelRect + XYPoint:new(labelSize:X() + labelGap:X(), 0)
+      table.insert(textFieldRects, textFieldRect)
+    end
+
+    local labelNames = {
+      "IP Address",
+      "Port",
+      "Telnet Enable",
+      "Status",
+    }
 
     ---@type LayoutLabel[]
-    local labels = {
-      {
+    local labels = {}
+    for i, labelText in ipairs(labelNames) do
+      ---@type LayoutLabel
+      local label = {
         Type = "Label",
-        Text = "IP Address",
-        Position = { 0, 0 },
-        Size = { labelWidth, labelHeight },
+        Text = labelText,
+        Position = labelRects[i].Position:AsArray(),
+        Size = labelRects[i].Size:AsArray(),
         FontSize = 9,
-      },
-      {
-        Type = "Label",
-        Text = "Port",
-        Position = { 0, labelHeight + labelYGap },
-        Size = { labelWidth, labelHeight },
-        FontSize = 9,
-      },
-      {
-        Type = "Label",
-        Text = "Telnet Enable",
-        Position = { 0, (labelHeight + labelYGap) * 2 },
-        Size = { labelWidth, labelHeight },
-        FontSize = 9,
-      },
-      {
-        Type = "Label",
-        Text = "Status",
-        Position = { 0, (labelHeight + labelYGap) * 3 },
-        Size = { labelWidth, labelHeight },
-        FontSize = 9,
+        HTextAlign = "Center",
+        VTextAlign = "Center",
       }
-    }
+      table.insert(labels, label)
+    end
 
     ---@type LayoutText
     local ipGraphic = {
       Style = "Text",
-      Position = { labelWidth + labelXGap, 0 },
-      Size = { 96, 16 },
+      Position = textFieldRects[1].Position:AsArray(),
+      Size = textFieldRects[1].Size:AsArray(),
       IsReadOnly = false,
       FontSize = 9,
     }
@@ -177,8 +226,8 @@ function GetControlLayout(props)
     ---@type LayoutText
     local portGraphic = {
       Style = "Text",
-      Position = { labelWidth + labelXGap, labelHeight + labelYGap },
-      Size = { 96, 16 },
+      Position = textFieldRects[2].Position:AsArray(),
+      Size = textFieldRects[2].Size:AsArray(),
       IsReadOnly = false,
       FontSize = 9,
     }
@@ -187,24 +236,21 @@ function GetControlLayout(props)
     local telnetGraphic = {
       Style = "Button",
       ButtonStyle = "Toggle",
-      Position = { labelWidth + labelXGap, (labelHeight + labelYGap) * 2 },
+      Position = textFieldRects[3].Position:AsArray(),
       IsReadOnly = false,
-      Size = { 96, 16 },
+      Size = textFieldRects[3].Size:AsArray(),
       FontSize = 9,
     }
 
     ---@type LayoutText
     local statusGraphic = {
       Style = "Text",
-      Position = { labelWidth + labelXGap, (labelHeight + labelYGap) * 3 },
-      Size = { 96, 16 },
+      Position = textFieldRects[4].Position:AsArray(),
+      Size = textFieldRects[4].Size:AsArray(),
       IsReadOnly = true,
       FontSize = 9,
     }
 
-    -- table.insert(graphics, ipGraphic)
-    -- table.insert(graphics, portGraphic)
-    -- table.insert(graphics, telnetGraphic)
     layout["IPAddress"] = ipGraphic
     layout["Port"] = portGraphic
     layout["TelnetEnable"] = telnetGraphic
