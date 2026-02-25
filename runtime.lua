@@ -365,11 +365,11 @@ VideoHubSectionParsers = {
 
     ---@type string?
     local key = nil
-    if Parser.lineStartsWith(line, "Model Name:") then
+    if Parser.lineStartsWith(line, "Model name:") then
       value = Parser.splitValue(line)
       valueChanged = (VideoHub.Device.Model ~= value)
       VideoHub.Device.Model = value
-    elseif Parser.lineStartsWith(line, "Friendly Name:") then
+    elseif Parser.lineStartsWith(line, "Friendly name:") then
       value = Parser.splitValue(line)
       valueChanged = (VideoHub.Device.Name ~= value)
       VideoHub.Device.Name = value
