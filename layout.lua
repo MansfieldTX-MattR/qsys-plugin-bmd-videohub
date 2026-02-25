@@ -151,14 +151,14 @@ function GetControlLayout(props)
 
     local labelSize = XYPoint:new(64, 16)
     local labelGap = XYPoint:new(4, 4)
-    local textFieldSize = XYPoint:new(96, 16)
+    local textFieldSize = XYPoint:new(180, 16)
 
     local numRows = 4
     local totalHeight = (labelSize:Y() * numRows) + (labelGap:Y() * (numRows - 1))
     local outerRect = Rectangle:new(
       XYPoint:new(0, 0),
       XYPoint:new(
-        labelSize:X() + labelGap:X() + textFieldSize:X(),
+        (labelSize + labelGap + textFieldSize):X(),
         totalHeight
       )
     )
@@ -175,7 +175,7 @@ function GetControlLayout(props)
     for i, rowOuterRect in ipairs(rowOuterRects) do
       local innerRect = Rectangle.FromCenter(
         rowOuterRect:Center(),
-        XYPoint:new(outerRect:Width() - labelGap:X(), rowOuterRect:Height())
+        XYPoint:new(outerRect:Width() - (labelGap:X() * 2), textFieldSize:Y())
       )
       table.insert(rowInnerRects, innerRect)
     end
@@ -187,7 +187,10 @@ function GetControlLayout(props)
         XYPoint:new(labelSize:X(), rowInnerRect:Height())
       )
       table.insert(labelRects, labelRect)
-      local textFieldRect = labelRect + XYPoint:new(labelSize:X() + labelGap:X(), 0)
+      local textFieldRect = Rectangle:new(
+        labelRect:TopRight() + XYPoint:new(labelGap:X(), 0),
+        textFieldSize
+      )
       table.insert(textFieldRects, textFieldRect)
     end
 
@@ -208,8 +211,10 @@ function GetControlLayout(props)
         Position = labelRects[i].Position:AsArray(),
         Size = labelRects[i].Size:AsArray(),
         FontSize = 9,
-        HTextAlign = "Center",
+        HTextAlign = "Left",
         VTextAlign = "Center",
+        StrokeColor = {105, 105, 105},
+        StrokeWidth = 1,
       }
       table.insert(labels, label)
     end
