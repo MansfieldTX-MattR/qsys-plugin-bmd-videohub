@@ -10,7 +10,6 @@ StatusType = {
 
 
 
-IPAddress = Controls.IPAddress
 Controls.TelnetActive.Boolean = false
 Controls.Status.Value = StatusType.NotPresent
 
@@ -26,6 +25,8 @@ TelnetState = {
   Active = false,
   IsSetup = false,
   Status = StatusType.NotPresent,
+  IP = "",
+  Port = -1,
 }
 
 ---@param newStatus StatusType
@@ -685,11 +686,41 @@ function TelnetIsConnected()  -- returns true when the telnet session flag is hi
   return TelnetState.Active
 end
 
+
+---@return boolean isValid
+---@return string ip
+---@return number port
+function ValidateIPAndPort()
+  local ip = Controls.IPAddress.String
+  if ip == nil or ip == "" then
+    print("IP address not set")
+    return false, "", -1
+  end
+  local portStr = Controls.Port.String
+  if portStr == nil or portStr == "" then
+    print("Port not set")
+    return false, "", -1
+  end
+  local port = tonumber(portStr)
+  if port == nil then
+    print("Invalid port number: "..tostring(portStr))
+    return false, "", -1
+  end
+  return true, ip, port
+end
+
 function Connect()  -- function to connect the TCP socket
   if Telnet.IsConnected then Telnet:Disconnect() Disconnected() end
   if not TelnetState.Enabled then return end
+  local isValid, ip, port = ValidateIPAndPort()
+  TelnetState.IP = ip
+  TelnetState.Port = port
+  if not isValid then
+    print("Invalid IP or port, cannot connect")
+    return
+  end
   TelnetState.SetStatus(StatusType.Initializing)
-  Telnet:Connect(IPAddress.String,Port)
+  Telnet:Connect(ip, port)
   VideoHubState.readEnabled = true
 end
 
@@ -765,6 +796,27 @@ PingTimer.EventHandler = function(t)
   end
 end
 
+
+Controls.IPAddress.EventHandler = function()
+  local ip = Controls.IPAddress.String
+  if ip == TelnetState.IP then
+    return
+  end
+  if TelnetState.Enabled then
+    Connect()
+  end
+end
+
+Controls.Port.EventHandler = function()
+  local isValid, _, port = ValidateIPAndPort()
+  if not isValid then return end
+  if port == TelnetState.Port then
+    return
+  end
+  if TelnetState.Enabled then
+    Connect()
+  end
+end
 
 Controls.TelnetEnable.EventHandler = function()
   TelnetState.Enabled = Controls.TelnetEnable.Boolean
