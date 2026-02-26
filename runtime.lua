@@ -4,6 +4,10 @@ function ControlsLockedOut()
   return Controls.ControlLockout.Boolean
 end
 
+---@diagnostic disable-next-line: undefined-global
+MaxInputCount = Properties["Max Input Count"].Value or 12
+---@diagnostic disable-next-line: undefined-global
+MaxOutputCount = Properties["Max Output Count"].Value or 12
 
 Controls.TelnetActive.Boolean = false
 Controls.Status.Value = StatusType.NotPresent
@@ -665,11 +669,11 @@ OutputLabelControls = {}
 ---@type TextControllerControls[]
 CrosspointControls = {}
 
-for i = 1, Properties["Max Input Count"].Value or 12 do
+for i = 1, MaxInputCount do
   InputLabelControls[i] = Controls.InputLabels[i]
 end
 
-for i = 1, Properties["Max Output Count"].Value or 12 do
+for i = 1, MaxOutputCount do
   OutputLabelControls[i] = Controls.OutputLabels[i]
   CrosspointControls[i] = Controls.Crosspoints[i]
 end
