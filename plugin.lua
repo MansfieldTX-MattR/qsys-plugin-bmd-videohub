@@ -32,5 +32,6 @@ end
 
 --Start event based logic
 if Controls then
+  --[[ #include "events.lua" ]]
   --[[ #include "runtime.lua" ]]
 end
