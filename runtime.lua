@@ -14,23 +14,9 @@ PingInterval = 30  -- seconds
 ---@type "Ping" | "GetStatus" | nil
 PingLastCommand = nil
 
----@class TelnetState
-TelnetState = {
-  Enabled = Controls.TelnetEnable.Boolean,
-  Active = false,
-  IsSetup = false,
-  Status = StatusType.NotPresent,
-  IP = "",
-  Port = -1,
-}
-
----@param newStatus StatusType
-TelnetState.SetStatus = function(newStatus)
-  if TelnetState.Status ~= newStatus then
-    TelnetState.Status = newStatus
-    Controls.Status.Value = newStatus
-  end
-end
+EOL = "\n"
+TelnetInstance = TelnetClient:new()
+TelnetInstance:SetEOLChar(EOL)
 
 TelnetRXBuffer = ""
 
@@ -365,27 +351,6 @@ VideoHubSectionParsers = {
 }
 
 
--- Constants
-Telnet = TcpSocket.New()  -- create new TCP object
-Port = 9990  -- port of the telnet server
-EOL = "\r"  -- End Of Line character
-IAC = 0xFF  -- telnet Interpret As Command character
-TelSetResp = {  -- table of telnet setup options, these are examples of WONT options.
-  {cmd=0xFC,opt=0x18},
-  {cmd=0xFC,opt=0x20},
-  {cmd=0xFC,opt=0x23},
-  {cmd=0xFC,opt=0x27},
-  {cmd=0xFC,opt=0x03},
-  {cmd=0xFC,opt=0x01},
-  {cmd=0xFC,opt=0x1F},
-  {cmd=0xFC,opt=0x05},
-  {cmd=0xFC,opt=0x21}
-}
-
-
-
-
-
 
 -- ---@param preludeOnly boolean
 -- ---@return string?
@@ -564,176 +529,73 @@ function ParseIncomingData(rxData)
   if lastCommandSent == "Ping" then
     if VideoHubState.ackOrNakLine == nil then
       print("No ACK/NAK received for Ping command, assuming disconnection")
-      TelnetState.SetStatus(StatusType.Compromised)
-      Connect()
+      TelnetInstance:SetStatus(StatusType.Compromised)
+      TelnetInstance:Connect()
     end
   end
 end
 
-
--- Telnet setup and command functions
-
-function TelnetSetup()  -- function to pack and send the do/dont/will/wont bits
-  print("Setting up telnet session")
-  local data={}
-  for _,resp in ipairs(TelSetResp) do
-    table.insert(data,string.pack("BBB",IAC,resp.cmd,resp.opt))
-  end
-  Telnet:Write(table.concat(data))
-end
+TelnetInstance:SetDataHandler(ParseIncomingData)
 
 
 
 ---@param cmdName VideoHubCommand
 ---@param cmd string
 function TelnetSendCommand(cmdName, cmd)  -- function to send a command over the telnet session
-  if TelnetIsConnected() then
+  if TelnetInstance:IsConnected() then
     VideoHubState.lastCommandSent = cmdName
-    Telnet:Write(cmd)
+    TelnetInstance:Send(cmd)
     DebugPrint("TX: "..cmd)
   else
     print("Telnet not connected, cannot send command")
   end
 end
 
-
-function Disconnected()  -- function called when disconnected from the
-  print("Telnet session disconnected")
+TelnetInstance.Events.Disconnected:RegisterCallback(function()
   if PingTimer:IsRunning() then
     PingTimer:Stop()
   end
-  if TelnetState.Enabled then
-    TelnetState.SetStatus(StatusType.Missing)
-  else
-    TelnetState.SetStatus(StatusType.NotPresent)
-  end
-
-  TelnetState.Active = false
   Controls.TelnetActive.Boolean = false
-  TelnetState.IsSetup = false
   VideoHubState.reset()
   VideoHubChangeEvents.reset()
   TelnetRXBuffer = ""
+end)
 
-end
-
-function Connected()  -- function called when the telnet session is first active
-  print("Telnet session active")
-  -- TelnetWaitForResponse(true)  -- wait for prelude to be parsed
-  -- print("Telnet prelude parsed")
-  TelnetState.SetStatus(StatusType.OK)
+TelnetInstance.Events.Connected:RegisterCallback(function()
   Controls.TelnetActive.Boolean = true
   VideoHub.SendPing()
   PingTimer:Start(PingInterval)
-end
+end)
 
----@return boolean
-function TelnetIsConnected()  -- returns true when the telnet session flag is high
-  return TelnetState.Active
-end
-
-
----@return boolean isValid
----@return string ip
----@return number port
-function ValidateIPAndPort()
-  local ip = Controls.IPAddress.String
-  if ip == nil or ip == "" then
-    print("IP address not set")
-    return false, "", -1
-  end
-  local portStr = Controls.Port.String
-  if portStr == nil or portStr == "" then
-    print("Port not set")
-    return false, "", -1
-  end
-  local port = tonumber(portStr)
-  if port == nil then
-    print("Invalid port number: "..tostring(portStr))
-    return false, "", -1
-  end
-  return true, ip, port
-end
-
-function Connect()  -- function to connect the TCP socket
-  if Telnet.IsConnected then Telnet:Disconnect() Disconnected() end
-  if not TelnetState.Enabled then return end
-  local isValid, ip, port = ValidateIPAndPort()
-  TelnetState.IP = ip
-  TelnetState.Port = port
-  if not isValid then
-    print("Invalid IP or port, cannot connect")
-    return
-  end
+TelnetInstance.Events.BeforeConnect:RegisterCallback(function()
   VideoHubState.reset()
   VideoHub.reset()
-  TelnetState.SetStatus(StatusType.Initializing)
-  Telnet:Connect(ip, port)
+end)
+
+TelnetInstance.Events.AfterConnect:RegisterCallback(function()
   VideoHubState.readEnabled = true
-end
+end)
+
+TelnetInstance.Events.StatusChanged:RegisterCallback(function()
+  local status = TelnetInstance:GetStatus()
+  local isActive = TelnetInstance:IsActive() or status == StatusType.OK
+  Controls.TelnetActive.Boolean = isActive
+  Controls.Status.Value = status
+end)
+
 
 function Initialization()  -- function called at start of runtime
   print("Initializing plugin")
-  if TelnetState.Enabled then
-    Connect()
-  end
+  TelnetInstance:SetEnabled(Controls.TelnetEnable.Boolean)
+  TelnetInstance:SetPort(Controls.Port.String)
+  TelnetInstance:SetIP(Controls.IPAddress.String)
 end
 
 
-function HandleRXData()  -- function that reads and parses the TCP socket
-  local rx=Telnet:Read(Telnet.BufferLength)  -- assign the contents of the buffer to a variable
-  -- DebugPrint("BFR: "..TelnetRXBuffer)
-  -- DebugPrint("RX: "..rx)
-  if not TelnetState.Enabled then return end
-  if TelnetState.IsSetup==false then
-    TelnetSetup()
-    TelnetState.IsSetup=true
-  end
-  if TelnetState.Active==false then
-    TelnetState.Active=true
-    Controls.TelnetActive.Boolean = true
-    Connected()
-  end
-  ParseIncomingData(rx)
-end
-
-
-
--- TCP socket callbacks
-Telnet.Connected=function()  -- function called when the TCP socket is connected
-  print("Socket connected")
-end
-
-Telnet.Reconnect=function()  -- function called when the TCP socket is reconnected
-  print("Socket reconnecting...")
-end
-
-Telnet.Closed=function() -- function called when the TCP socket is closed
-  print("Socket closed")
-  Disconnected()
-end
-
-Telnet.Error=function()  -- function called when the TCP socket has an error
-  print("Socket error")
-  Disconnected()
-end
-
-Telnet.Timeout=function()  -- function called when the TCP socket times out
-  print("Socket timeout")
-  Disconnected()
-end
-
-Telnet.Data=HandleRXData  -- HandleRXData is called when Telnet has data
-
-
--- EventHandlers
--- IPAddress.EventHandler = Connect
--- UserName.EventHandler = Connect
--- Password.EventHandler = Connect
 
 ---@param t Timer
 PingTimer.EventHandler = function(t)
-  if TelnetIsConnected() and TelnetState.Enabled then
+  if TelnetInstance:IsConnected() and TelnetInstance:IsEnabled() then
     if PingLastCommand == "Ping" then
       PingLastCommand = "GetStatus"
       VideoHub.RequestStatus()
@@ -746,38 +608,17 @@ end
 
 
 Controls.IPAddress.EventHandler = function()
-  local ip = Controls.IPAddress.String
-  if ip == TelnetState.IP then
-    return
-  end
-  if TelnetState.Enabled then
-    Connect()
-  end
+  TelnetInstance:SetIP(Controls.IPAddress.String)
 end
 
+
 Controls.Port.EventHandler = function()
-  local isValid, _, port = ValidateIPAndPort()
-  if not isValid then return end
-  if port == TelnetState.Port then
-    return
-  end
-  if TelnetState.Enabled then
-    Connect()
-  end
+  TelnetInstance:SetPort(Controls.Port.String)
 end
 
 Controls.TelnetEnable.EventHandler = function()
-  TelnetState.Enabled = Controls.TelnetEnable.Boolean
-  print("Telnet Enable changed to "..tostring(TelnetState.Enabled))
-  if TelnetState.Enabled and not TelnetState.Active then
-    Connect()
-  elseif not TelnetState.Enabled then
-    -- Telnet.Data = function() end  -- disable data handler to prevent parsing during disconnect
-    if Telnet.IsConnected then
-      Telnet:Disconnect()
-      Disconnected()
-    end
-  end
+  TelnetInstance:SetEnabled(Controls.TelnetEnable.Boolean)
+  print("Telnet Enable changed to "..tostring(TelnetInstance:IsEnabled()))
 end
 
 
