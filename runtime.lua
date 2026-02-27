@@ -567,7 +567,6 @@ end)
 
 TelnetInstance.Events.Connected:RegisterCallback(function()
   Controls.TelnetActive.Boolean = true
-  VideoHub.SendPing()
   PingTimer:Start(PingInterval)
 end)
 
