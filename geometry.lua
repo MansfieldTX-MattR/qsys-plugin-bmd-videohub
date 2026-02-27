@@ -118,6 +118,16 @@ function Rectangle.FromBottomCenter(bottomCenterPos, size)
 end
 
 
+---@param leftTop XYPoint
+---@param rightBottom XYPoint
+---@return Rectangle
+function Rectangle.FromBounds(leftTop, rightBottom)
+  local position = leftTop
+  local size = rightBottom - leftTop
+  return Rectangle:new(position, size)
+end
+
+
 function Rectangle:Right()
   return self.Position:X() + self.Size:X()
 end
