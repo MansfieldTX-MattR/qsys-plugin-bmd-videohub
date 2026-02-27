@@ -271,6 +271,11 @@ VideoHubSectionParsers = {
     end
   end,
   Device = function(line)
+
+    ---@generic T
+    ---@param arr T[]
+    ---@param length number
+    ---@param fillValue T
     local function fillArray(arr, length, fillValue)
       for i = 1, length do
         arr[i] = fillValue
@@ -296,18 +301,24 @@ VideoHubSectionParsers = {
       VideoHub.Device.UniqueId = value
     elseif Parser.lineStartsWith(line, "Video inputs:") then
       value = tonumber(Parser.splitValue(line))
+      if value == nil then
+        error("Failed to parse video input count: "..tostring(line))
+      end
       valueChanged = (VideoHub.Device.InputCount ~= value)
       VideoHub.Device.InputCount = value
-      if #VideoHub.InputLabels ~= value then
+      if #VideoHub.InputLabels < value then
         fillArray(VideoHub.InputLabels, value, "")
       end
     elseif Parser.lineStartsWith(line, "Video outputs:") then
       value = tonumber(Parser.splitValue(line))
+      if value == nil then
+        error("Failed to parse video output count: "..tostring(line))
+      end
       valueChanged = (VideoHub.Device.OutputCount ~= value)
-      if #VideoHub.OutputLabels ~= value then
+      if #VideoHub.OutputLabels < value then
         fillArray(VideoHub.OutputLabels, value, "")
       end
-      if #VideoHub.Crosspoints ~= value then
+      if #VideoHub.Crosspoints < value then
         fillArray(VideoHub.Crosspoints, value, 1)
       end
       VideoHub.Device.OutputCount = value
