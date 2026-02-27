@@ -105,18 +105,16 @@ end
 ---@param size XYPoint
 ---@return Rectangle
 function Rectangle.FromCenter(centerPos, size)
-  local x = centerPos:X() - (size:X() / 2)
-  local y = centerPos:Y() - (size:Y() / 2)
-  return Rectangle:new(XYPoint:new(x, y), size)
+  local xy = centerPos - (size / 2)
+  return Rectangle:new(xy, size)
 end
 
 ---@param bottomCenterPos XYPoint
 ---@param size XYPoint
 ---@return Rectangle
 function Rectangle.FromBottomCenter(bottomCenterPos, size)
-  local x = bottomCenterPos:X() - (size:X() / 2)
-  local y = bottomCenterPos:Y() - size:Y()
-  return Rectangle:new(XYPoint:new(x, y), size)
+  local xy = bottomCenterPos - XYPoint:new(size:X() / 2, size:Y())
+  return Rectangle:new(xy, size)
 end
 
 
@@ -181,7 +179,7 @@ end
 ---@param other XYPoint
 ---@return Rectangle
 function Rectangle:Add(other)
-  local newPosition = self.Position:Add(other)
+  local newPosition = self.Position + other
   return Rectangle:new(newPosition, self.Size)
 end
 Rectangle.__add = Rectangle.Add
@@ -189,7 +187,7 @@ Rectangle.__add = Rectangle.Add
 ---@param other XYPoint
 ---@return Rectangle
 function Rectangle:Subtract(other)
-  local newPosition = self.Position:Subtract(other)
+  local newPosition = self.Position - other
   return Rectangle:new(newPosition, self.Size)
 end
 Rectangle.__sub = Rectangle.Subtract
