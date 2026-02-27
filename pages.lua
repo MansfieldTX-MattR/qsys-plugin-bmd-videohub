@@ -1,4 +1,4 @@
-PageNames = {"Control", "Setup"}
+PageNames = {"Control", "Route", "Setup"}
 
 function GetPages(props)
   local pages = {}

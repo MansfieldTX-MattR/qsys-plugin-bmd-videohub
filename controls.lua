@@ -133,7 +133,13 @@ function GetControls(props)
       PinStyle = "Both",
       UserPin = true,
       Count = outputCount,
-    }
+    },
+    {
+      Name = "RouteMatrixButtons",
+      ControlType = "Button",
+      ButtonType = "Toggle",
+      Count = inputCount * outputCount,
+    },
   }
 
   -- -@class Controls

@@ -667,6 +667,9 @@ VideoHubChangeEvents.Crosspoints:RegisterCallback(function()
   for i, inputIndex in ipairs(VideoHub.Crosspoints) do
     -- Controls["Crosspoints "..i].Value = inputIndex
     CrosspointControls[i].Value = inputIndex
+    for j, buttonControl in ipairs(RouteMatrixButtons[i]) do
+      buttonControl.Boolean = (inputIndex == j)
+    end
   end
 end)
 
@@ -680,6 +683,9 @@ OutputLabelControls = {}
 ---@type TextControllerControls[]
 CrosspointControls = {}
 
+---@type TextControllerControls[][]
+RouteMatrixButtons = {}
+
 for i = 1, MaxInputCount do
   InputLabelControls[i] = Controls.InputLabels[i]
 end
@@ -688,6 +694,40 @@ for i = 1, MaxOutputCount do
   OutputLabelControls[i] = Controls.OutputLabels[i]
   CrosspointControls[i] = Controls.Crosspoints[i]
 end
+
+function GatherRouteMatrixButtons()
+  local btnIndex = 1
+  for outputIndex = 1, MaxOutputCount do
+    RouteMatrixButtons[outputIndex] = {}
+    for inputIndex = 1, MaxInputCount do
+      local btnControl = Controls.RouteMatrixButtons[btnIndex]
+      RouteMatrixButtons[outputIndex][inputIndex] = btnControl
+      btnIndex = btnIndex + 1
+    end
+  end
+end
+GatherRouteMatrixButtons()
+
+
+function SetupRouteMatrixButtonHandlers()
+  for outputIndex, inputControls in ipairs(RouteMatrixButtons) do
+    for inputIndex, buttonControl in ipairs(inputControls) do
+      ---@ param ctl TextControllerControls
+      buttonControl.EventHandler = function(ctl)
+        if VideoHub.Device.OutputCount < outputIndex or VideoHub.Device.InputCount < inputIndex then
+          return
+        end
+        if ControlsLockedOut() then
+          local prevValue = not ctl.Boolean
+          Timer.CallAfter(function() ctl.Boolean = prevValue end, 0.1)
+          return
+        end
+        VideoHub.SetCrosspoint(outputIndex, inputIndex)
+      end
+    end
+  end
+end
+SetupRouteMatrixButtonHandlers()
 
 
 for i, inputLabelControl in ipairs(InputLabelControls) do

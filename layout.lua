@@ -2,8 +2,9 @@
 
 ---@param title string
 ---@param rect Rectangle
+---@param VTextAlign? VAlignmentName
 ---@return LayoutGroupBox
-function CreateGroupBox(title, rect)
+function CreateGroupBox(title, rect, VTextAlign)
   return {
     Type = "GroupBox",
     Position = rect.Position:AsArray(),
@@ -11,7 +12,7 @@ function CreateGroupBox(title, rect)
     Text = title,
     FontSize = 9,
     HTextAlign = "Left",
-    VTextAlign = "Center",
+    VTextAlign = VTextAlign or "Center",
     ZOrder = -1,
   }
 end
@@ -161,6 +162,79 @@ function GetControlLayout(props)
       local labelRect = gridRects[4][i]
       local crosspointLabel = CreateLabel(tostring(i), labelRect)
       table.insert(graphics, crosspointLabel)
+    end
+  elseif CurrentPage == "Route" then
+    local inputCount = props["Max Input Count"].Value or 12
+    local outputCount = props["Max Output Count"].Value or 12
+    local routeTableCellSize = XYPoint:new(36, 16)
+    local inputLabelSize = XYPoint:new(64, 16)
+    local inputLabelRightPadding = 4
+    local outputNumberLabelSize = XYPoint:new(36, 16)
+    local outputLabelSize = XYPoint:new(36, 16)
+    local upperRowYSpacing = 20
+
+    local outputNumberLabelRowRect = Rectangle:new(
+      XYPoint:new(inputLabelSize:X() + inputLabelRightPadding, upperRowYSpacing),
+      XYPoint:new(outputNumberLabelSize:X() * outputCount, outputNumberLabelSize:Y())
+    )
+    local outputNumberLabelCells = outputNumberLabelRowRect:Divide(XYPoint:new(outputCount, 1))
+    local outputLabelRowRect = Rectangle:new(
+      outputNumberLabelRowRect:BottomLeft() + XYPoint:new(0, upperRowYSpacing),
+      outputNumberLabelRowRect.Size
+    )
+    local outputLabelCells = outputLabelRowRect / (XYPoint:new(outputCount, 1))
+    local routeTableRect = Rectangle:new(
+      outputLabelRowRect:BottomLeft() + XYPoint:new(0, upperRowYSpacing),
+      routeTableCellSize * XYPoint:new(outputCount, inputCount)
+    )
+    local routeTableCells = routeTableRect / (XYPoint:new(outputCount, inputCount))
+    local routeTableGroupBoxRect = Rectangle.FromBounds(
+      XYPoint:new(inputLabelSize:X() + inputLabelRightPadding, 0),
+      routeTableRect:BottomRight() + XYPoint:new(inputLabelRightPadding, inputLabelRightPadding)
+    )
+    local routeTableGroupBox = CreateGroupBox("Output", routeTableGroupBoxRect, "Top")
+    table.insert(graphics, routeTableGroupBox)
+    local inputLabelRect = Rectangle:new(
+      XYPoint:new(0, routeTableRect:Top()),
+      inputLabelSize
+    )
+
+    local inputNumberRect = Rectangle:new(
+      XYPoint:new(routeTableRect:Right() + inputLabelRightPadding, routeTableRect:Top()),
+      routeTableCellSize
+    )
+
+    for i = 1, inputCount do
+      local prettyName = string.format("InputLabels~%i", i)
+      layout["InputLabels " .. i] = CreateTextInput(inputLabelRect, prettyName)
+      inputLabelRect = inputLabelRect + XYPoint:new(0, inputLabelRect:Height())
+      local numberLabel = CreateLabel(tostring(i), inputNumberRect)
+      table.insert(graphics, numberLabel)
+      inputNumberRect = inputNumberRect + XYPoint:new(0, inputNumberRect:Height())
+    end
+
+    local k = 1
+    for i = 1, outputCount do
+      local numberLabel = CreateLabel(tostring(i), outputNumberLabelCells[1][i])
+      table.insert(graphics, numberLabel)
+      local prettyName = string.format("OutputLabels~%i", i)
+      layout["OutputLabels " .. i] = CreateTextInput(outputLabelCells[1][i], prettyName)
+      for j = 1, inputCount do
+        prettyName = string.format("RouteMatrixButtons~Output %i~Input %i", i, j)
+
+        ---@type LayoutButton
+        local routeButton = {
+          Style = "Button",
+          ButtonStyle = "Toggle",
+          Position = routeTableCells[j][i].Position:AsArray(),
+          Size = routeTableCells[j][i].Size:AsArray(),
+          PrettyName = prettyName,
+          CornerRadius = 2,
+          Margin = 2,
+        }
+        layout[string.format("RouteMatrixButtons %i", k)] = routeButton
+        k = k + 1
+      end
     end
   elseif CurrentPage == "Setup" then
 
