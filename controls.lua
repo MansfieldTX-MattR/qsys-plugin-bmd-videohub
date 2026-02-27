@@ -87,6 +87,12 @@ function GetControls(props)
       UserPin = true,
     },
     {
+      Name = "DeviceProtocolVersion",
+      ControlType = "Text",
+      PinStyle = "Output",
+      UserPin = true,
+    },
+    {
       Name = "NumInputs",
       ControlType = "Knob",
       ControlUnit = "Integer",

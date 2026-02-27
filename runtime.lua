@@ -245,17 +245,20 @@ end
 
 
 ---@class VideoHubChangeEvents
+---@field Preamble Event
 ---@field Device Event
 ---@field InputLabels Event
 ---@field OutputLabels Event
 ---@field Crosspoints Event
 VideoHubChangeEvents = {
+  Preamble = Event:new(),
   Device = Event:new(),
   InputLabels = Event:new(),
   OutputLabels = Event:new(),
   Crosspoints = Event:new(),
 }
 function VideoHubChangeEvents.reset()
+  VideoHubChangeEvents.Preamble:Trigger()
   VideoHubChangeEvents.Device:Trigger()
   VideoHubChangeEvents.InputLabels:Trigger()
   VideoHubChangeEvents.OutputLabels:Trigger()
@@ -268,6 +271,7 @@ VideoHubSectionParsers = {
   Preamble = function(line)
     if Parser.lineStartsWith(line, "Version:") then
       VideoHub.Preamble.ProtocolVersion = Parser.splitValue(line)
+      VideoHubChangeEvents.Preamble:Trigger()
     end
   end,
   Device = function(line)
@@ -629,6 +633,9 @@ Controls.TelnetEnable.EventHandler = function()
   print("Telnet Enable changed to "..tostring(TelnetInstance:IsEnabled()))
 end
 
+VideoHubChangeEvents.Preamble:RegisterCallback(function()
+  Controls.DeviceProtocolVersion.String = VideoHub.Preamble.ProtocolVersion or ""
+end)
 
 VideoHubChangeEvents.Device:RegisterCallback(function()
   Controls.DeviceModel.String = VideoHub.Device.Model

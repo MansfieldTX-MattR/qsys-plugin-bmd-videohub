@@ -164,11 +164,11 @@ function GetControlLayout(props)
     end
   elseif CurrentPage == "Setup" then
 
-    local labelSize = XYPoint:new(64, 16)
+    local labelSize = XYPoint:new(96, 16)
     local labelGap = XYPoint:new(4, 4)
     local textFieldSize = XYPoint:new(180, 16)
 
-    local numRows = 10
+    local numRows = 11
     local totalHeight = (labelSize:Y() * numRows) + (labelGap:Y() * (numRows - 1))
     local outerRect = Rectangle:new(
       XYPoint:new(0, 0),
@@ -219,6 +219,7 @@ function GetControlLayout(props)
       "Device ID",
       "Num Inputs",
       "Num Outputs",
+      "Protocol Version",
       "Control Lockout",
     }
 
@@ -318,6 +319,15 @@ function GetControlLayout(props)
         Color = {255, 255, 255},
         TextBoxStyle = "Normal",
       },
+      ProtocolVersion = {
+        Style = "Text",
+        Position = textFieldRects[10].Position:AsArray(),
+        Size = textFieldRects[10].Size:AsArray(),
+        IsReadOnly = true,
+        FontSize = 9,
+        Color = {255, 255, 255},
+        TextBoxStyle = "Normal",
+      },
     }
 
     for key, label in pairs(deviceTexts) do
@@ -328,9 +338,9 @@ function GetControlLayout(props)
     local controlLockoutGraphic = {
       Style = "Button",
       ButtonStyle = "Toggle",
-      Position = textFieldRects[10].Position:AsArray(),
+      Position = textFieldRects[11].Position:AsArray(),
       IsReadOnly = false,
-      Size = textFieldRects[10].Size:AsArray(),
+      Size = textFieldRects[11].Size:AsArray(),
       FontSize = 9,
     }
 
@@ -340,6 +350,7 @@ function GetControlLayout(props)
     layout["TelnetEnable"] = telnetGraphic
     layout["Status"] = statusGraphic
     layout["ControlLockout"] = controlLockoutGraphic
+    layout["DeviceProtocolVersion"] = deviceTexts.ProtocolVersion
     for _, label in ipairs(labels) do
       table.insert(graphics, label)
     end
