@@ -319,28 +319,22 @@ VideoHubSectionParsers = {
   InputLabels = function(line)
     local index, label = Parser.parseLabelLine(line)
     if index and label then
-      if VideoHub.InputLabels[index] ~= label then
-        VideoHub.InputLabels[index] = label
-        VideoHubChangeEvents.InputLabels:Trigger()
-      end
+      VideoHub.InputLabels[index] = label
+      VideoHubChangeEvents.InputLabels:Trigger()
     end
   end,
   OutputLabels = function(line)
     local index, label = Parser.parseLabelLine(line)
     if index and label then
-      if VideoHub.OutputLabels[index] ~= label then
-        VideoHub.OutputLabels[index] = label
-        VideoHubChangeEvents.OutputLabels:Trigger()
-      end
+      VideoHub.OutputLabels[index] = label
+      VideoHubChangeEvents.OutputLabels:Trigger()
     end
   end,
   Crosspoints = function(line)
     local outputIndex, inputIndex = Parser.parseRoutingLine(line)
     if outputIndex and inputIndex then
-      if VideoHub.Crosspoints[outputIndex] ~= inputIndex then
-        VideoHub.Crosspoints[outputIndex] = inputIndex
-        VideoHubChangeEvents.Crosspoints:Trigger()
-      end
+      VideoHub.Crosspoints[outputIndex] = inputIndex
+      VideoHubChangeEvents.Crosspoints:Trigger()
     end
   end,
   Network = function(line)
