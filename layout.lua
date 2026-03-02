@@ -194,6 +194,13 @@ function GetControlLayout(props)
 
     local k = 1
     for i = 1, outputCount do
+      -- Add a hidden layout item for crosspoints so their pins are created
+      layout["Crosspoints " .. i] = {
+        Style = "None",
+        Position = {0, 0},
+        Size = {0, 0},
+        PrettyName = string.format("Crosspoints~%i", i),
+      }
       local numberLabel = CreateLabel(tostring(i), outputNumberLabelCells[i])
       table.insert(graphics, numberLabel)
       local prettyName = string.format("OutputLabels~%i", i)
