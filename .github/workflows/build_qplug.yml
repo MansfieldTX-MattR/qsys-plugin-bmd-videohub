@@ -18,11 +18,8 @@ jobs:
         submodules: 'recursive'
 
     - name: Run plugin compiler
-      run: ".\\plugincompile\\PLUGCC.exe \"${workspaceFolderBasename}\" \"${workspaceFolder}\\plugin.lua\""
+      run: .\plugincompile\PLUGCC.exe "${{ github.event.repository.name }}" "${{ github.workspace }}\plugin.lua"
       shell: cmd
-      env:
-        workspaceFolder: ${{ github.workspace }}
-        workspaceFolderBasename: ${{ github.workspace }}
 
     - name: Upload compiled plugin
       uses: actions/upload-artifact@v7
