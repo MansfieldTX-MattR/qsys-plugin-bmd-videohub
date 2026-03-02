@@ -1,0 +1,31 @@
+name: Build QPlug
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        submodules: 'recursive'
+
+    - name: Run plugin compiler
+      run: ".\\plugincompile\\PLUGCC.exe \"${workspaceFolderBasename}\" \"${workspaceFolder}\\plugin.lua\""
+      shell: cmd
+      env:
+        workspaceFolder: ${{ github.workspace }}
+        workspaceFolderBasename: ${{ github.workspace }}
+
+    - name: Upload compiled plugin
+      uses: actions/upload-artifact@v7
+      with:
+        name: compiled-plugin
+        path: ./*.qplug
