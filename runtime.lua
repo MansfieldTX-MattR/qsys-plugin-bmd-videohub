@@ -615,29 +615,42 @@ end)
 
 
 VideoHubChangeEvents.InputLabels:RegisterCallback(function()
-  -- print("Input label changed")
   for i, label in ipairs(VideoHub.InputLabels) do
-    -- Controls["InputLabels "..i].String = label
+    if i > MaxInputCount then
+      DebugPrint("Warning: received input label for index "..i.." but no corresponding control exists")
+      goto continue
+    end
     InputLabelControls[i].String = label
+    ::continue::
   end
 end)
 
 VideoHubChangeEvents.OutputLabels:RegisterCallback(function()
-  -- print("Output label changed")
   for i, label in ipairs(VideoHub.OutputLabels) do
-    -- Controls["OutputLabels "..i].String = label
+    if i > MaxOutputCount then
+      DebugPrint("Warning: received output label for index "..i.." but no corresponding control exists")
+      goto continue
+    end
     OutputLabelControls[i].String = label
+    ::continue::
   end
 end)
 
 VideoHubChangeEvents.Crosspoints:RegisterCallback(function()
-  -- print("Crosspoint changed")
   for i, inputIndex in ipairs(VideoHub.Crosspoints) do
-    -- Controls["Crosspoints "..i].Value = inputIndex
+    if i > MaxOutputCount then
+      DebugPrint("Warning: received crosspoint for output index "..i.." but no corresponding control exists")
+      goto continue
+    end
     CrosspointControls[i].Value = inputIndex
     for j, buttonControl in ipairs(RouteMatrixButtons[i]) do
-      buttonControl.Boolean = (inputIndex == j)
+      if j > MaxInputCount then
+        DebugPrint("Warning: received crosspoint for output index "..i.." input index "..j.." but no corresponding button control exists")
+      else
+        buttonControl.Boolean = (inputIndex == j)
+      end
     end
+    ::continue::
   end
 end)
 
@@ -679,7 +692,15 @@ GatherRouteMatrixButtons()
 
 function SetupRouteMatrixButtonHandlers()
   for outputIndex, inputControls in ipairs(RouteMatrixButtons) do
+    if outputIndex > MaxOutputCount then
+      DebugPrint("Warning: More output button controls than MaxOutputCount, skipping handlers for output index "..outputIndex)
+      goto continueOutput
+    end
     for inputIndex, buttonControl in ipairs(inputControls) do
+      if inputIndex > MaxInputCount then
+        DebugPrint("Warning: More input button controls than MaxInputCount, skipping handlers for input index "..inputIndex.." on output index "..outputIndex)
+        goto continueInput
+      end
       ---@ param ctl TextControllerControls
       buttonControl.EventHandler = function(ctl)
         if VideoHub.Device.OutputCount < outputIndex or VideoHub.Device.InputCount < inputIndex then
@@ -692,7 +713,9 @@ function SetupRouteMatrixButtonHandlers()
         end
         VideoHub.SetCrosspoint(outputIndex, inputIndex)
       end
+      ::continueInput::
     end
+    ::continueOutput::
   end
 end
 SetupRouteMatrixButtonHandlers()
