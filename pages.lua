@@ -1,4 +1,4 @@
-PageNames = {"Control", "Route", "Setup"}
+PageNames = {"Input Labels", "Output Labels", "Route", "Setup"}
 
 function GetPages(props)
   local pages = {}

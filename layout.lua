@@ -78,94 +78,73 @@ function GetControlLayout(props)
   ---@type DesignGraphicsItem[]
   local graphics = {}
 
+  ---@type { Input: integer, Output: integer }
+  local maxCounts = {
+    Input = props["Max Input Count"].Value or 12,
+    Output = props["Max Output Count"].Value or 12,
+  }
+
   local CurrentPage = PageNames[props["page_index"].Value]
-  if CurrentPage == "Control" then
-    local inputCount = props["Max Input Count"].Value
-    local outputCount = props["Max Output Count"].Value
-    local columnWidth = 64
-    local columnGap = 4
-    local textFieldHeight = 16
-    local knobHeight = 32
-    local groupBoxPadding = XYPoint:new(4, 20)
-    local yGap = 4
-    local outerRect = Rectangle:new(
-      XYPoint:new(0, 0),
-      XYPoint:new(
-        (columnWidth * inputCount) + (columnGap * (inputCount - 1)) + (groupBoxPadding:X() * 2),
-        ((textFieldHeight + yGap) * 3) + (groupBoxPadding:Y() * 2)
-      )
+
+  ---@param labelType "Input" | "Output"
+  function BuildLabelPage(labelType)
+    local count = maxCounts[labelType]
+    local numRows = 1
+    local countPerRow = count
+    local maxOuterWidth = 1200
+    local textFieldSize = XYPoint:new(72, 16)
+    local textFieldLabelSize = XYPoint:new(64, 16)
+    local rowGap = 4
+    local rowWidth = textFieldSize:X() * count
+    if rowWidth > maxOuterWidth then
+      -- Find a count per row that fits inside the maxOuterWidth and fills all rows with an equal number of labels
+      local numIters = 0
+      while 1 do
+        numIters = numIters + 1
+        numRows = numRows + 1
+        countPerRow = math.floor(count / numRows)
+        rowWidth = textFieldSize:X() * countPerRow
+        if countPerRow % numRows == 0 and rowWidth <= maxOuterWidth then
+          break
+        end
+        if numIters > 100 then
+          error("Could not find a suitable layout for labels")
+        end
+      end
+    end
+
+    local rowRect = Rectangle:new(
+      XYPoint:new(0, 12),
+      XYPoint:new(rowWidth, (textFieldSize:Y() + textFieldLabelSize:Y()))
     )
-    local textFieldRowOuterSize = XYPoint:new(outerRect:Width(), textFieldHeight + groupBoxPadding:Y())
-    local inputLabelGroupBoxRect = Rectangle:new(outerRect.Position, textFieldRowOuterSize)
-    local outputLabelGroupBoxRect = inputLabelGroupBoxRect + inputLabelGroupBoxRect:BottomLeft() + XYPoint:new(0, yGap)
-    local crosspointGroupBoxRect = Rectangle:new(
-      outputLabelGroupBoxRect:BottomLeft() + XYPoint:new(0, yGap),
-      XYPoint:new(outerRect:Width(), knobHeight + groupBoxPadding:Y())
-    )
-    local bottomLabelRowRect = Rectangle:new(
-      crosspointGroupBoxRect:BottomLeft() + XYPoint:new(0, yGap),
-      textFieldRowOuterSize
-    )
 
-    local groupBoxRects = {
-      inputLabelGroupBoxRect,
-      outputLabelGroupBoxRect,
-      crosspointGroupBoxRect,
-      bottomLabelRowRect,
-    }
-
-    ---@type Rectangle[]
-    local groupBoxInnerRects = {}
-    for i, groupBoxRect in ipairs(groupBoxRects) do
-      local innerHeight = i == 3 and knobHeight or textFieldHeight
-      local innerRect = Rectangle.FromCenter(
-        groupBoxRect:Center(),
-        XYPoint:new(groupBoxRect:Width() - (groupBoxPadding:X() * 2), innerHeight)
-      )
-      table.insert(groupBoxInnerRects, innerRect)
+    for rowIndex = 1, numRows do
+      local rowCells = rowRect:DivideVertically(countPerRow)
+      if #rowCells ~= countPerRow then
+        error(string.format("Expected %i cells in row, got %i", countPerRow, #rowCells))
+      end
+      for columnIndex, cellRect in ipairs(rowCells) do
+        local labelIndex = ((rowIndex - 1) * countPerRow) + columnIndex
+        if labelIndex > count then break end
+        local prettyName = string.format("%sLabels~%i", labelType, labelIndex)
+        local textFieldRect = Rectangle:new(cellRect.Position, textFieldSize)
+        local labelRect = Rectangle.FromBottomCenter(
+          cellRect:BottomCenter(), textFieldLabelSize
+        )
+        layout[string.format("%sLabels %i", labelType, labelIndex)] = CreateTextInput(textFieldRect, prettyName)
+        local label = CreateLabel(tostring(labelIndex), labelRect)
+        table.insert(graphics, label)
+      end
+      rowRect = rowRect + XYPoint:new(0, rowRect:Height() + rowGap)
     end
-
-    ---@type Rectangle[][]
-    local gridRects = {}
-    for i, innerRect in ipairs(groupBoxInnerRects) do
-      local numCols = (i == 1) and inputCount or outputCount
-      local cellRows = innerRect:DivideVertically(numCols)
-      table.insert(gridRects, cellRows)
-    end
-
-    local GroupBoxes = {
-      CreateGroupBox("Input Labels", groupBoxRects[1]),
-      CreateGroupBox("Output Labels", groupBoxRects[2]),
-      CreateGroupBox("Crosspoint Controls", groupBoxRects[3]),
-      CreateGroupBox("Labels", groupBoxRects[4]),
-    }
-
-    for _, groupBox in ipairs(GroupBoxes) do
-      table.insert(graphics, groupBox)
-    end
-
-    for i = 1, inputCount do
-      local gridRect = gridRects[1][i]
-      -- The `~` in "PrettyName" creates a sub-tree for the pins in the UI
-      local prettyName = string.format("InputLabels~%i", i)
-      -- Since the control is an array (count>1), the key becomes `<ControlName> <index>`
-      layout["InputLabels " .. i] = CreateTextInput(gridRect, prettyName)
-    end
-
-    for i = 1, outputCount do
-      local gridRect = gridRects[2][i]
-      local prettyName = string.format("OutputLabels~%i", i)
-      layout["OutputLabels " .. i] = CreateTextInput(gridRect, prettyName)
-      local knobRect = gridRects[3][i]
-      prettyName = string.format("Crosspoints~%i", i)
-      layout["Crosspoints " .. i] = CreateKnob(knobRect, XYPoint:new(knobHeight, knobHeight), prettyName)
-      local labelRect = gridRects[4][i]
-      local crosspointLabel = CreateLabel(tostring(i), labelRect)
-      table.insert(graphics, crosspointLabel)
-    end
+  end
+  if CurrentPage == "Input Labels" then
+    BuildLabelPage("Input")
+  elseif CurrentPage == "Output Labels" then
+    BuildLabelPage("Output")
   elseif CurrentPage == "Route" then
-    local inputCount = props["Max Input Count"].Value or 12
-    local outputCount = props["Max Output Count"].Value or 12
+    local inputCount = maxCounts["Input"]
+    local outputCount = maxCounts["Output"]
     local routeTableCellSize = XYPoint:new(36, 16)
     local inputLabelSize = XYPoint:new(64, 16)
     local inputLabelRightPadding = 4
