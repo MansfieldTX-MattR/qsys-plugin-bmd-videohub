@@ -64,7 +64,7 @@ function GetControls(props)
       Name = "ControlLockout",
       ControlType = "Button",
       ButtonType = "Toggle",
-      DefaultValue = false,
+      DefaultValue = true,
       PinStyle = "Input",
       UserPin = true,
     },
