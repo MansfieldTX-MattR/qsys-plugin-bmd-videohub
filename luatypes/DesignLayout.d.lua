@@ -79,6 +79,11 @@
 ---@field VTextAlign? VAlignmentName
 ---@field ZOrder? integer
 
+
+---@class LayoutHiddenItem : LayoutBase
+---@field Style "None"
+
+
 ---@class LayoutButton : LayoutBase
 ---@field Style "Button"
 ---@field ButtonStyle ButtonStyleName
@@ -171,6 +176,7 @@
 
 
 ---@alias DesignLayoutItem =
+---| LayoutHiddenItem
 ---| LayoutButton
 ---| LayoutFader
 ---| LayoutMeter
