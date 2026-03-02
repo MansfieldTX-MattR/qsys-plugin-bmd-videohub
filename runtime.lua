@@ -24,6 +24,7 @@ TelnetInstance:SetEOLChar(EOL)
 
 TelnetRXBuffer = ""
 
+AllowRXDebugPrint = false
 
 
 
@@ -227,6 +228,7 @@ VideoHub = {
 }
 
 function VideoHub.reset()
+  DebugPrint("===================== Resetting VideoHub state ====================")
   VideoHub.Preamble.ProtocolVersion = nil
   VideoHub.Device = VideoHubDevice:new()
   VideoHub.InputLabels = {}
@@ -435,7 +437,7 @@ function ParseIncomingData(rxData)
   local sectionParsed = false
   local lastCommandSent = VideoHubState.lastCommandSent
   VideoHubState.ackOrNakLine = nil
-  if VideoHubState.preludeParsed then
+  if AllowRXDebugPrint then
     DebugPrint("RX: "..rxData)
   end
 
@@ -468,7 +470,6 @@ function ParseIncomingData(rxData)
     end
     for sectionName, sectionHeader in pairs(VideoHubSections) do
       if Parser.lineStartsWith(line, sectionHeader) then
-        DebugPrint("Section header detected: "..sectionHeader)
         VideoHubState.currentSection = sectionName
         goto continue
       end
@@ -493,7 +494,7 @@ function ParseIncomingData(rxData)
   end
   if lastCommandSent == "Ping" then
     if VideoHubState.ackOrNakLine == nil then
-      print("No ACK/NAK received for Ping command, assuming disconnection")
+      DebugPrint("No ACK/NAK received for Ping command, assuming disconnection")
       TelnetInstance:SetStatus(StatusType.Compromised)
       TelnetInstance:Connect()
     end
@@ -516,7 +517,7 @@ function TelnetSendCommand(cmdName, cmd)  -- function to send a command over the
     TelnetInstance:Send(cmd)
     DebugPrint("TX: "..cmd)
   else
-    print("Telnet not connected, cannot send command")
+    DebugPrint("Telnet not connected, cannot send command")
   end
 end
 
@@ -564,7 +565,7 @@ end)
 
 
 function Initialization()  -- function called at start of runtime
-  print("Initializing plugin")
+  DebugPrint("Initializing plugin")
   TelnetInstance:SetEnabled(Controls.TelnetEnable.Boolean)
   TelnetInstance:SetPort(Controls.Port.String)
   TelnetInstance:SetIP(Controls.IPAddress.String)
@@ -597,7 +598,7 @@ end
 
 Controls.TelnetEnable.EventHandler = function()
   TelnetInstance:SetEnabled(Controls.TelnetEnable.Boolean)
-  print("Telnet Enable changed to "..tostring(TelnetInstance:IsEnabled()))
+  DebugPrint("Telnet Enable changed to "..tostring(TelnetInstance:IsEnabled()))
 end
 
 VideoHubChangeEvents.Preamble:RegisterCallback(function()
@@ -710,7 +711,7 @@ for i, inputLabelControl in ipairs(InputLabelControls) do
       return
     end
     local label = ctl.String
-    print("Input "..i.." label changed to "..label..", current is "..VideoHub.InputLabels[i])
+    DebugPrint("Input "..i.." label changed to "..label..", current is "..VideoHub.InputLabels[i])
     if VideoHub.InputLabels[i] == label then
       return
     end
@@ -730,7 +731,7 @@ for i, outputLabelControl in ipairs(OutputLabelControls) do
       return
     end
     local label = ctl.String
-    print("Output "..i.." label changed to "..label..", current is "..VideoHub.OutputLabels[i])
+    DebugPrint("Output "..i.." label changed to "..label..", current is "..VideoHub.OutputLabels[i])
     if VideoHub.OutputLabels[i] == label then
       return
     end
@@ -750,7 +751,7 @@ for i, outputIndex in ipairs(CrosspointControls) do
       return
     end
     local inputIndex = ctl.Value
-    print("Output "..i.." changed to input "..inputIndex..", current is "..VideoHub.Crosspoints[i])
+    DebugPrint("Output "..i.." changed to input "..inputIndex..", current is "..VideoHub.Crosspoints[i])
     if VideoHub.Crosspoints[i] == inputIndex then
       return
     end

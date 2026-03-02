@@ -91,18 +91,18 @@ function TelnetClient:new()
   }
   o.Socket.Connected = function()
     o.Events.Connected:Set()
-    print("Socket Connected")
+    DebugPrint("Socket Connected")
   end
   o.Socket.Reconnect = function()
-    print("Socket Reconnect Triggered")
+    DebugPrint("Socket Reconnect Triggered")
   end
   o.Socket.Error = function()
     o:resetInternalState()
     o.Events.SocketError:Set()
-    print("Socket Error")
+    DebugPrint("Socket Error")
   end
   o.Socket.Timeout = function()
-    print("Socket Timeout")
+    DebugPrint("Socket Timeout")
   end
   o.Socket.Data = function()
     o:HandleIncomingData()
@@ -139,6 +139,7 @@ end
 --- Set the current status of the telnet client and trigger the StatusChanged event if it has changed
 ---@param newStatus StatusType
 function TelnetClient:SetStatus(newStatus)
+  DebugPrint("TelnetClient:SetStatus: '".. StatusTypeToString(self.State.Status) .."' -> '".. StatusTypeToString(newStatus) .."'")
   if self.State.Status ~= newStatus then
     self.State.Status = newStatus
     self.Events.StatusChanged:Trigger()
@@ -267,12 +268,15 @@ end
 --- If already connected, it will disconnect first.
 --- Returns true if the connection process was initiated (valid IP/port and enabled), false otherwise.
 function TelnetClient:Connect()
+  DebugPrint("Attempting to connect. Current State: Enabled="..tostring(self.State.Enabled)..", IP="..self.State.IP..", Port="..tostring(self.State.Port))
   if self.Socket.IsConnected then self:Disconnect() end
   self:resetInternalState()
 
   local valid, ip, port = self:ValidateIPAndPort(self.State.IP, self.State.Port)
+  DebugPrint("IP and Port validation result: "..tostring(valid)..", IP="..ip..", Port="..tostring(port))
   if not valid then return false end
   if not self.State.Enabled then return end
+  DebugPrint("IP and Port valid, proceeding to connect")
   self:SetStatus(StatusType.Initializing)
   self.Events.BeforeConnect:Trigger()
   self.Socket:Connect(ip, port)
@@ -283,6 +287,7 @@ end
 --- Disconnect the telnet client if currently connected, and reset internal state.
 --- Triggers the Disconnected event if it was active.
 function TelnetClient:Disconnect()
+  DebugPrint("Disconnecting. Current State: Active="..tostring(self.State.Active)..", Connected="..tostring(self.Socket.IsConnected))
   if self.Socket.IsConnected then
     self.Socket:Disconnect()
   end
@@ -305,7 +310,7 @@ function TelnetClient:Send(data)
   if self.Socket.IsConnected then
     self.Socket:Write(data)
   else
-    print("Cannot send data, socket not connected")
+    DebugPrint("Cannot send data, socket not connected")
   end
 end
 
