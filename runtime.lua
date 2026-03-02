@@ -67,6 +67,11 @@ function VideoHubState:reset()
   self.responseReady:Trigger()
 end
 
+---@return boolean
+function VideoHubState:IsReady()
+  return self.preludeParsed and self.readEnabled and TelnetInstance:IsConnected()
+end
+
 
 
 
@@ -204,12 +209,14 @@ end
 
 
 ---@class VideoHubChangeEvents
+---@field PreludeParsed Event
 ---@field Preamble Event
 ---@field Device Event
 ---@field InputLabels Event
 ---@field OutputLabels Event
 ---@field Crosspoints Event
 VideoHubChangeEvents = {
+  PreludeParsed = Event:new(),
   Preamble = Event:new(),
   Device = Event:new(),
   InputLabels = Event:new(),
@@ -217,6 +224,7 @@ VideoHubChangeEvents = {
   Crosspoints = Event:new(),
 }
 function VideoHubChangeEvents:reset()
+  self.PreludeParsed:Trigger()
   self.Preamble:Trigger()
   self.Device:Trigger()
   self.InputLabels:Trigger()
@@ -407,9 +415,13 @@ function ParseIncomingData(rxData)
   for line in TelnetRXBuffer:gmatch("([^\r\n]+)") do
     if Parser.lineStartsWith(line, "END PRELUDE:") then
       DebugPrint("End of prelude detected")
+      local prevValue = VideoHubState.preludeParsed
       VideoHubState.preludeParsed = true
       VideoHubState.currentSection = nil
       TelnetRXBuffer = ""
+      if not prevValue then
+        VideoHubChangeEvents.PreludeParsed:Trigger()
+      end
       break
     end
     line = Parser.stripNewlines(line)
@@ -469,6 +481,10 @@ TelnetInstance:SetDataHandler(ParseIncomingData)
 ---@param cmd string
 function TelnetSendCommand(cmdName, cmd)  -- function to send a command over the telnet session
   if TelnetInstance:IsConnected() then
+    if not VideoHubState:IsReady() then
+      DebugPrint("WARNING: Cannot send command, prelude not parsed yet.  Command: "..cmdName)
+      return
+    end
     VideoHubState.lastCommandSent = cmdName
     TelnetInstance:Send(cmd)
     DebugPrint("TX: "..cmd)
@@ -520,7 +536,7 @@ end
 
 ---@param t Timer
 PingTimer.EventHandler = function(t)
-  if TelnetInstance:IsConnected() and TelnetInstance:IsEnabled() then
+  if TelnetInstance:IsConnected() and TelnetInstance:IsEnabled() and VideoHubState:IsReady() then
     if PingLastCommand == "Ping" then
       PingLastCommand = "GetStatus"
       VideoHub.RequestStatus()
