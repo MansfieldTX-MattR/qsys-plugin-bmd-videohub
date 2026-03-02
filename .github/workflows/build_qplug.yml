@@ -3,6 +3,8 @@ name: Build QPlug
 on:
   push:
     branches: [ main ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -26,3 +28,21 @@ jobs:
       with:
         name: compiled-plugin
         path: ./*.qplug
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Download compiled plugin
+      uses: actions/download-artifact@v7
+      with:
+        name: compiled-plugin
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ./*.qplug
