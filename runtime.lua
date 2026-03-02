@@ -505,7 +505,6 @@ end)
 
 TelnetInstance.Events.Connected:RegisterCallback(function()
   Controls.TelnetActive.Boolean = true
-  PingTimer:Start(PingInterval)
 end)
 
 TelnetInstance.Events.BeforeConnect:RegisterCallback(function()
@@ -523,6 +522,18 @@ TelnetInstance.Events.StatusChanged:RegisterCallback(function()
   Controls.TelnetActive.Boolean = isActive
   Controls.Status.Value = status
 end)
+
+
+VideoHubChangeEvents.PreludeParsed:RegisterCallback(function()
+  if VideoHubState:IsReady() then
+    -- Send a ping immediately after prelude is parsed to ensure we can communicate with the device and to kick off status retrieval
+    VideoHub.SendPing()
+    if not PingTimer:IsRunning() then
+      PingTimer:Start(PingInterval)
+    end
+  end
+end)
+
 
 
 function Initialization()  -- function called at start of runtime
