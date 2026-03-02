@@ -110,18 +110,7 @@ VideoHub = {
     ProtocolVersion = nil,
   },
   Device = VideoHubDevice:new(),
-  -- Device = {
-  --   ---@type string?
-  --   Model = nil,
-  --   ---@type string?
-  --   Name = nil,
-  --   ---@type string?
-  --   UniqueId = nil,
-  --   ---@type number
-  --   InputCount = 0,
-  --   ---@type number
-  --   OutputCount = 0,
-  -- },
+
   ---@type string[]
   InputLabels = {},
   ---@type string[]
@@ -164,16 +153,6 @@ VideoHub = {
     local cmd = table.concat(txLines, "\n")
     cmd = cmd .. "\n\n"
     TelnetSendCommand("SetInputLabels", cmd)
-    -- local ack = TelnetWaitForAckOrNak()
-    -- if ack then
-    --   for _, pair in ipairs(labelPairs) do
-    --     local inputIndex = pair[1]
-    --     local label = pair[2]
-    --     VideoHub.InputLabels[inputIndex] = label
-    --     VideoHubChangeEvents.InputLabels:Trigger()
-    --   end
-    -- end
-    -- return ack
   end,
 
   ---@param outputIndex number
@@ -193,16 +172,6 @@ VideoHub = {
     local cmd = table.concat(txLines, "\n")
     cmd = cmd .. "\n\n"
     TelnetSendCommand("SetOutputLabels", cmd)
-    -- local ack = TelnetWaitForAckOrNak()
-    -- if ack then
-    --   for _, pair in ipairs(outputPairs) do
-    --     local outputIndex = pair[1]
-    --     local label = pair[2]
-    --     VideoHub.OutputLabels[outputIndex] = label
-    --     VideoHubChangeEvents.OutputLabels:Trigger()
-    --   end
-    -- end
-    -- return ack
   end,
 
   ---@param outputIndex number
@@ -222,16 +191,6 @@ VideoHub = {
     local cmd = table.concat(txLines, "\n")
     cmd = cmd .. "\n\n"
     TelnetSendCommand("SetVideoOutputRouting", cmd)
-    -- local ack = TelnetWaitForAckOrNak()
-    -- if ack then
-    --   for _, pair in ipairs(routingPairs) do
-    --     local outputIndex = pair[1]
-    --     local inputIndex = pair[2]
-    --     VideoHub.Crosspoints[outputIndex] = inputIndex
-    --   end
-    -- end
-    -- VideoHubChangeEvents.Crosspoints:Trigger()
-    -- return ack
   end,
 }
 
@@ -363,52 +322,6 @@ VideoHubSectionParsers = {
   end,
 }
 
-
-
--- ---@param preludeOnly boolean
--- ---@return string?
--- function TelnetWaitForResponse(preludeOnly)
---   -- local preludeOnly = arg[1] or false
---   while VideoHubState.readEnabled do
---     VideoHubState.responseReady:Wait(function() end)
---     VideoHubState.responseReady:Clear()
---     if preludeOnly then
---       if VideoHubState.preludeParsed then
---         break
---       else
---         goto continue
---       end
---     end
---     if VideoHubState.ackOrNakLine ~= nil then
---       local response = VideoHubState.ackOrNakLine
---       VideoHubState.ackOrNakLine = nil
---       VideoHubState.ackOrNakEvent:Clear()
---       return response
---     end
---   end
---     ::continue::
--- end
-
--- ---@return boolean
--- function TelnetWaitForAckOrNak()
---   if not TelnetActive then
---     print("Telnet not connected, cannot wait for ACK/NAK")
---     return false
---   end
---   -- local function waiter()
---   --   VideoHubState.ackOrNakEvent:Wait(function()
---   --     local response = VideoHubState.ackOrNakLine
---   --     VideoHubState.ackOrNakLine = nil
---   --     VideoHubState.ackOrNakEvent:Clear()
---   --     local result = response ~= nil and Parser.lineStartsWith(response, "ACK")
---   --     return result
---   --   end)
---   -- end
---   -- return waiter()
-
-
-
--- end
 
 
 -- Parsing logic
