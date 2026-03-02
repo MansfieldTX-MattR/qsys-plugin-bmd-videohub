@@ -58,13 +58,13 @@ VideoHubState = {
   responseReady = Event:new(),
   readEnabled = false
 }
-function VideoHubState.reset()
-  VideoHubState.preludeParsed = false
-  VideoHubState.currentSection = nil
-  VideoHubState.readEnabled = false
-  VideoHubState.ackOrNakLine = nil
-  -- VideoHubState.ackOrNakEvent:Clear()
-  VideoHubState.responseReady:Trigger()
+function VideoHubState:reset()
+  self.preludeParsed = false
+  self.currentSection = nil
+  self.readEnabled = false
+  self.ackOrNakLine = nil
+  -- self.ackOrNakEvent:Clear()
+  self.responseReady:Trigger()
 end
 
 
@@ -216,12 +216,12 @@ VideoHubChangeEvents = {
   OutputLabels = Event:new(),
   Crosspoints = Event:new(),
 }
-function VideoHubChangeEvents.reset()
-  VideoHubChangeEvents.Preamble:Trigger()
-  VideoHubChangeEvents.Device:Trigger()
-  VideoHubChangeEvents.InputLabels:Trigger()
-  VideoHubChangeEvents.OutputLabels:Trigger()
-  VideoHubChangeEvents.Crosspoints:Trigger()
+function VideoHubChangeEvents:reset()
+  self.Preamble:Trigger()
+  self.Device:Trigger()
+  self.InputLabels:Trigger()
+  self.OutputLabels:Trigger()
+  self.Crosspoints:Trigger()
 end
 
 
@@ -482,8 +482,8 @@ TelnetInstance.Events.Disconnected:RegisterCallback(function()
     PingTimer:Stop()
   end
   Controls.TelnetActive.Boolean = false
-  VideoHubState.reset()
-  VideoHubChangeEvents.reset()
+  VideoHubState:reset()
+  VideoHubChangeEvents:reset()
   TelnetRXBuffer = ""
 end)
 
@@ -493,7 +493,7 @@ TelnetInstance.Events.Connected:RegisterCallback(function()
 end)
 
 TelnetInstance.Events.BeforeConnect:RegisterCallback(function()
-  VideoHubState.reset()
+  VideoHubState:reset()
   VideoHub.reset()
 end)
 
