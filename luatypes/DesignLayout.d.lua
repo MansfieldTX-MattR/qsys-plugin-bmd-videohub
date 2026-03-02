@@ -59,25 +59,34 @@
 ---| "Svg"
 
 
----@class LayoutBase
+---@class LayoutFontOptions
+---@field Font? string
+---@field FontSize? integer
+---@field FontStyle? string
+
+
+---@class LayoutAlignmentOptions
+---@field HTextAlign? HAlignmentName
+---@field VTextAlign? VAlignmentName
+
+
+---@class LayoutAppearanceOptions
+---@field Color? Color
+---@field StrokeColor? Color|string
+---@field StrokeWidth? integer
+---@field Radius? integer
+---@field Margin? integer
+---@field Padding? integer
+---@field ZOrder? integer
+
+
+---@class LayoutBase : LayoutFontOptions, LayoutAlignmentOptions, LayoutAppearanceOptions
 ---@field Position Point
 ---@field Size Point
 ---@field Style ControlStyleName
 ---@field ClassName? string
----@field Color? Color
----@field Font? string
----@field FontSize? integer
----@field FontStyle? string
----@field HTextAlign? HAlignmentName
 ---@field IsReadOnly? boolean
----@field Margin? integer
----@field Padding? integer
 ---@field PrettyName? string
----@field Radius? integer
----@field StrokeColor? Color
----@field StrokeWidth? integer
----@field VTextAlign? VAlignmentName
----@field ZOrder? integer
 
 
 ---@class LayoutHiddenItem : LayoutBase
