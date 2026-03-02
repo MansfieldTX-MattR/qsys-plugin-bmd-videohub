@@ -129,8 +129,8 @@ function GetControlLayout(props)
     local gridRects = {}
     for i, innerRect in ipairs(groupBoxInnerRects) do
       local numCols = (i == 1) and inputCount or outputCount
-      local cellRows = innerRect:Divide(XYPoint:new(numCols, 1))
-      table.insert(gridRects, cellRows[1])
+      local cellRows = innerRect:DivideVertically(numCols)
+      table.insert(gridRects, cellRows)
     end
 
     local GroupBoxes = {
@@ -177,12 +177,12 @@ function GetControlLayout(props)
       XYPoint:new(inputLabelSize:X() + inputLabelRightPadding, upperRowYSpacing),
       XYPoint:new(outputNumberLabelSize:X() * outputCount, outputNumberLabelSize:Y())
     )
-    local outputNumberLabelCells = outputNumberLabelRowRect:Divide(XYPoint:new(outputCount, 1))
+    local outputNumberLabelCells = outputNumberLabelRowRect:DivideVertically(outputCount)
     local outputLabelRowRect = Rectangle:new(
       outputNumberLabelRowRect:BottomLeft() + XYPoint:new(0, upperRowYSpacing),
       outputNumberLabelRowRect.Size
     )
-    local outputLabelCells = outputLabelRowRect / (XYPoint:new(outputCount, 1))
+    local outputLabelCells = outputLabelRowRect:DivideVertically(outputCount)
     local routeTableRect = Rectangle:new(
       outputLabelRowRect:BottomLeft() + XYPoint:new(0, upperRowYSpacing),
       routeTableCellSize * XYPoint:new(outputCount, inputCount)
@@ -215,10 +215,10 @@ function GetControlLayout(props)
 
     local k = 1
     for i = 1, outputCount do
-      local numberLabel = CreateLabel(tostring(i), outputNumberLabelCells[1][i])
+      local numberLabel = CreateLabel(tostring(i), outputNumberLabelCells[i])
       table.insert(graphics, numberLabel)
       local prettyName = string.format("OutputLabels~%i", i)
-      layout["OutputLabels " .. i] = CreateTextInput(outputLabelCells[1][i], prettyName)
+      layout["OutputLabels " .. i] = CreateTextInput(outputLabelCells[i], prettyName)
       for j = 1, inputCount do
         prettyName = string.format("RouteMatrixButtons~Output %i~Input %i", i, j)
 
@@ -251,13 +251,7 @@ function GetControlLayout(props)
         totalHeight
       )
     )
-    local rowOuterRectGrid = outerRect:Divide(XYPoint:new(1, numRows))
-
-    ---@type Rectangle[]
-    local rowOuterRects = {}
-    for i = 1, numRows do
-      table.insert(rowOuterRects, rowOuterRectGrid[i][1])
-    end
+    local rowOuterRects = outerRect:DivideHorizontally(numRows)
 
     ---@type Rectangle[]
     local rowInnerRects = {}

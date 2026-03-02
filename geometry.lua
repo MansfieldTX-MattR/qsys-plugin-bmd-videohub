@@ -226,3 +226,24 @@ function Rectangle:Divide(xyCount)
   return cellRows
 end
 Rectangle.__div = Rectangle.Divide
+
+--- Subdivide the rectangle into `count` horizontal slices
+---@param count integer
+---@return Rectangle[]
+function Rectangle:DivideHorizontally(count)
+  local cells = self:Divide(XYPoint:new(1, count))
+  -- Extract the first column from each row to get a single array of rectangles
+  local columnCells = {}
+  for _, row in ipairs(cells) do
+    table.insert(columnCells, row[1])
+  end
+  return columnCells
+end
+
+--- Subdivide the rectangle into `count` vertical slices
+---@param count integer
+---@return Rectangle[]
+function Rectangle:DivideVertically(count)
+  local cells = self:Divide(XYPoint:new(count, 1))
+  return cells[1]
+end
