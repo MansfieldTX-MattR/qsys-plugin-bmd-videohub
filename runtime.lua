@@ -88,6 +88,15 @@ VideoHubSections = {
   Configuration = "CONFIGURATION:",
 }
 
+
+---@alias VideoHubCommandSectionMapKey "SetInputLabels" | "SetOutputLabels" | "SetVideoOutputRouting"
+
+VideoHubCommandSectionMap = {
+  SetInputLabels = VideoHubSections.InputLabels,
+  SetOutputLabels = VideoHubSections.OutputLabels,
+  SetVideoOutputRouting = VideoHubSections.Crosspoints,
+}
+
 ---@class VideoHubDevice
 ---@field Model string
 ---@field Name string
@@ -149,14 +158,8 @@ VideoHub = {
 
   ---@param labelPairs [number, string][]
   SetInputLabels = function(labelPairs)
-    local txLines = {VideoHubSections.InputLabels}
-    for _, pair in ipairs(labelPairs) do
-      local inputIndex = pair[1]
-      local label = pair[2]
-      table.insert(txLines, string.format("%d %s", inputIndex - 1, label))
-    end
-    local cmd = table.concat(txLines, "\n")
-    cmd = cmd .. "\n\n"
+    local txLines = VideoHub.FormatCommandPairs(labelPairs)
+    local cmd = VideoHub.FormatCommand("SetInputLabels", txLines)
     TelnetSendCommand("SetInputLabels", cmd)
   end,
 
@@ -168,14 +171,8 @@ VideoHub = {
 
   ---@param outputPairs [number, string][]
   SetOutputLabels = function(outputPairs)
-    local txLines = {VideoHubSections.OutputLabels}
-    for _, pair in ipairs(outputPairs) do
-      local outputIndex = pair[1]
-      local label = pair[2]
-      table.insert(txLines, string.format("%d %s", outputIndex - 1, label))
-    end
-    local cmd = table.concat(txLines, "\n")
-    cmd = cmd .. "\n\n"
+    local txLines = VideoHub.FormatCommandPairs(outputPairs)
+    local cmd = VideoHub.FormatCommand("SetOutputLabels", txLines)
     TelnetSendCommand("SetOutputLabels", cmd)
   end,
 
@@ -187,15 +184,45 @@ VideoHub = {
 
   ---@param routingPairs [number, number][]
   SetCrosspoints = function(routingPairs)
-    local txLines = {VideoHubSections.Crosspoints}
-    for _, pair in ipairs(routingPairs) do
-      local outputIndex = pair[1]
-      local inputIndex = pair[2]
-      table.insert(txLines, string.format("%d %d", outputIndex - 1, inputIndex - 1))
+    local txLines = VideoHub.FormatCommandPairs(routingPairs)
+    local cmd = VideoHub.FormatCommand("SetVideoOutputRouting", txLines)
+    TelnetSendCommand("SetVideoOutputRouting", cmd)
+  end,
+
+  --- Helper function to format command pairs into lines of "key value" for the given command sections
+  ---@param pairs [number|string, number|string][]
+  ---@return string[]
+  FormatCommandPairs = function(pairs)
+
+    ---@param value number|string
+    ---@return string
+    function FormatNumber(value)
+      if type(value) == "string" then return value end
+      return string.format("%d", value - 1)
+    end
+
+    local lines = {}
+    for _, pair in ipairs(pairs) do
+      local key, value = pair[1], pair[2]
+      key, value = FormatNumber(key), FormatNumber(value)
+      table.insert(lines, key.." "..value)
+    end
+    return lines
+  end,
+
+  --- Helper function to format a command given a section and lines, adding the appropriate header and newlines
+  ---@param section VideoHubCommandSectionMapKey
+  ---@param lines string[]
+  ---@return string
+  FormatCommand = function(section, lines)
+    local sectionHeader = VideoHubCommandSectionMap[section]
+    local txLines = {sectionHeader}
+    for _, line in ipairs(lines) do
+      table.insert(txLines, line)
     end
     local cmd = table.concat(txLines, "\n")
     cmd = cmd .. "\n\n"
-    TelnetSendCommand("SetVideoOutputRouting", cmd)
+    return cmd
   end,
 }
 
