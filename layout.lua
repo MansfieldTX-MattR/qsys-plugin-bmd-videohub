@@ -170,17 +170,21 @@ function GetControlLayout(props)
     local inputLabelSize = XYPoint:new(64, 16)
     local inputLabelRightPadding = 4
     local outputNumberLabelSize = XYPoint:new(36, 16)
-    local outputLabelSize = XYPoint:new(36, 16)
+    local outputLabelSize = XYPoint:new(36, 32)
     local upperRowYSpacing = 20
 
+    local inputLabelOuterWidth = inputLabelSize:X() + inputLabelRightPadding * 2
+    local routeTableOuterX = inputLabelOuterWidth + inputLabelRightPadding
+    local routeTableInnerX = routeTableOuterX + inputLabelRightPadding
+
     local outputNumberLabelRowRect = Rectangle:new(
-      XYPoint:new(inputLabelSize:X() + inputLabelRightPadding, upperRowYSpacing),
+    XYPoint:new(routeTableInnerX, upperRowYSpacing),
       XYPoint:new(outputNumberLabelSize:X() * outputCount, outputNumberLabelSize:Y())
     )
     local outputNumberLabelCells = outputNumberLabelRowRect:DivideVertically(outputCount)
     local outputLabelRowRect = Rectangle:new(
       outputNumberLabelRowRect:BottomLeft() + XYPoint:new(0, upperRowYSpacing),
-      outputNumberLabelRowRect.Size
+      XYPoint:new(outputNumberLabelRowRect:Width(), outputLabelSize:Y())
     )
     local outputLabelCells = outputLabelRowRect:DivideVertically(outputCount)
     local routeTableRect = Rectangle:new(
@@ -189,15 +193,29 @@ function GetControlLayout(props)
     )
     local routeTableCells = routeTableRect / (XYPoint:new(outputCount, inputCount))
     local routeTableGroupBoxRect = Rectangle.FromBounds(
-      XYPoint:new(inputLabelSize:X() + inputLabelRightPadding, 0),
+      XYPoint:new(routeTableOuterX, 0),
       routeTableRect:BottomRight() + XYPoint:new(inputLabelRightPadding, inputLabelRightPadding)
     )
-    local routeTableGroupBox = CreateGroupBox("Output", routeTableGroupBoxRect, "Top")
+    local routeTableGroupBox = CreateGroupBox("Output", routeTableGroupBoxRect, "Top", {
+      Color = {0, 0, 0},
+      StrokeWidth = 1,
+      CornerRadius = 8
+    })
     table.insert(graphics, routeTableGroupBox)
+
     local inputLabelRect = Rectangle:new(
-      XYPoint:new(0, routeTableRect:Top()),
-      inputLabelSize
+      XYPoint:new(inputLabelRightPadding, routeTableRect:Top()),
+      inputLabelSize * XYPoint:new(1, inputCount)
     )
+    local inputLabelCells = inputLabelRect:DivideHorizontally(inputCount)
+    local inputLabelGroupBoxRect = Rectangle.FromBounds(
+      XYPoint:new(0, inputLabelRect:Top() - upperRowYSpacing),
+      XYPoint:new(
+        inputLabelRect:Right() + inputLabelRightPadding,
+        inputLabelRect:Top() + inputLabelRect:Height() + inputLabelRightPadding
+      )
+    )
+    table.insert(graphics, CreateGroupBox("Input", inputLabelGroupBoxRect, "Top"))
 
     local inputNumberRect = Rectangle:new(
       XYPoint:new(routeTableRect:Right() + inputLabelRightPadding, routeTableRect:Top()),
@@ -206,8 +224,16 @@ function GetControlLayout(props)
 
     for i = 1, inputCount do
       local prettyName = string.format("InputLabels~%i", i)
-      layout["InputLabels " .. i] = CreateTextInput(inputLabelRect, prettyName)
-      inputLabelRect = inputLabelRect + XYPoint:new(0, inputLabelRect:Height())
+      layout["InputLabels " .. i] = CreateTextInput(inputLabelCells[i], prettyName, {
+        IsReadOnly = true,
+        FontSize = 9,
+        Color = {255, 255, 255, 0},
+        TextColor = {0, 0, 0},
+        StrokeColor = {105, 105, 105},
+        StrokeWidth = 1,
+        WordWrap = true,
+        TextBoxStyle = "Normal",
+      })
       local numberLabel = CreateLabel(tostring(i), inputNumberRect)
       table.insert(graphics, numberLabel)
       inputNumberRect = inputNumberRect + XYPoint:new(0, inputNumberRect:Height())
@@ -225,7 +251,16 @@ function GetControlLayout(props)
       local numberLabel = CreateLabel(tostring(i), outputNumberLabelCells[i])
       table.insert(graphics, numberLabel)
       local prettyName = string.format("OutputLabels~%i", i)
-      layout["OutputLabels " .. i] = CreateTextInput(outputLabelCells[i], prettyName)
+      layout["OutputLabels " .. i] = CreateTextInput(outputLabelCells[i], prettyName, {
+        IsReadOnly = true,
+        FontSize = 9,
+        Color = {255, 255, 255, 0},
+        TextColor = {0, 0, 0},
+        StrokeColor = {105, 105, 105},
+        StrokeWidth = 1,
+        WordWrap = true,
+        TextBoxStyle = "Normal",
+      })
       for j = 1, inputCount do
         prettyName = string.format("RouteMatrixButtons~Output %i~Input %i", i, j)
 
