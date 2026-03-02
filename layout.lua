@@ -3,9 +3,11 @@
 ---@param title string
 ---@param rect Rectangle
 ---@param VTextAlign? VAlignmentName
+---@param options? LayoutGraphicsOptions
 ---@return LayoutGroupBox
-function CreateGroupBox(title, rect, VTextAlign)
-  return {
+function CreateGroupBox(title, rect, VTextAlign, options)
+  options = options or {}
+  local o = {
     Type = "GroupBox",
     Position = rect.Position:AsArray(),
     Size = XYPoint:new(rect:Width(), rect:Height()):AsArray(),
@@ -13,15 +15,20 @@ function CreateGroupBox(title, rect, VTextAlign)
     FontSize = 9,
     HTextAlign = "Left",
     VTextAlign = VTextAlign or "Center",
-    ZOrder = -1,
   }
+  for k, v in pairs(options) do
+    o[k] = v
+  end
+  return o
 end
 
 
 ---@param rect Rectangle
 ---@param prettyName? string
+---@param options? LayoutItemOptions
 ---@return LayoutText
-function CreateTextInput(rect, prettyName)
+function CreateTextInput(rect, prettyName, options)
+  options = options or {}
   local o = {
     Style = "Text",
     Position = rect.Position:AsArray(),
@@ -29,6 +36,9 @@ function CreateTextInput(rect, prettyName)
     IsReadOnly = false,
     FontSize = 9,
   }
+  for k, v in pairs(options) do
+    o[k] = v
+  end
   if prettyName then
     o.PrettyName = prettyName
   end
@@ -37,9 +47,11 @@ end
 
 ---@param text string
 ---@param rect Rectangle
+---@param options? LayoutGraphicsOptions
 ---@return LayoutLabel
-function CreateLabel(text, rect)
-  return {
+function CreateLabel(text, rect, options)
+  options = options or {}
+  local o = {
     Type = "Label",
     Text = text,
     Position = rect.Position:AsArray(),
@@ -48,13 +60,19 @@ function CreateLabel(text, rect)
     HTextAlign = "Center",
     VTextAlign = "Center",
   }
+  for k, v in pairs(options) do
+    o[k] = v
+  end
+  return o
 end
 
 ---@param outerRect Rectangle
 ---@param size XYPoint
 ---@param prettyName? string
+---@param options? LayoutItemOptions
 ---@return LayoutKnob
-function CreateKnob(outerRect, size, prettyName)
+function CreateKnob(outerRect, size, prettyName, options)
+  options = options or {}
   local knobSize = math.min(size:X(), size:Y())
   local knobBox = Rectangle.FromBottomCenter(outerRect:BottomCenter(), XYPoint:new(knobSize, knobSize))
   local o = {
@@ -64,6 +82,9 @@ function CreateKnob(outerRect, size, prettyName)
   }
   if prettyName then
     o.PrettyName = prettyName
+  end
+  for k, v in pairs(options) do
+    o[k] = v
   end
   return o
 end

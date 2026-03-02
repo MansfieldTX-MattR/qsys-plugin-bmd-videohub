@@ -153,6 +153,21 @@
 ---@field Fill? Color
 
 
+--- Extra options for layout items
+---@class LayoutItemOptions : LayoutFontOptions, LayoutAlignmentOptions, LayoutAppearanceOptions
+---@field ClassName? string
+---@field IsReadOnly? boolean
+---@field PrettyName? string
+---@field BackgroundColor? Color
+---@field CornerRadius? integer
+---@field TextBoxStyle? TextBoxStyleName
+---@field WordWrap? boolean
+---@field ShowTextBox? boolean
+---@field ButtonStyle? ButtonStyleName
+---@field ButtonVisualStyle? ButtonVisualStyleName
+
+
+
 ---@class LayoutHeader : LayoutGraphicsTable
 ---@field Type "Header"
 ---@field Text? string
@@ -182,6 +197,13 @@
 ---@field VTextAlign? VAlignmentName
 ---@field StrokeWidth? integer
 ---@field StrokeColor? Color|string
+
+
+--- Extra options for graphics items
+---@class LayoutGraphicsOptions : LayoutFontOptions, LayoutAlignmentOptions, LayoutAppearanceOptions
+---@field Radius? integer
+---@field Text? string
+---@field Fill? Color
 
 
 ---@alias DesignLayoutItem =
