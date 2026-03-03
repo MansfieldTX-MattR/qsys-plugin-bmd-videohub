@@ -35,5 +35,6 @@ if Controls then
   --[[ #include "util.lua" ]]
   --[[ #include "events.lua" ]]
   --[[ #include "telnet.lua" ]]
+  --[[ #include "commandqueue.lua" ]]
   --[[ #include "runtime.lua" ]]
 end
