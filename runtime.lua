@@ -15,6 +15,8 @@ Controls.Status.Value = StatusType.NotPresent
 PingTimer = Timer.New()
 PingInterval = 30  -- seconds
 
+CommandQueueTimer = Timer.New()
+
 ---@type "Ping" | "GetStatus" | nil
 PingLastCommand = nil
 
@@ -28,7 +30,7 @@ AllowRXDebugPrint = false
 
 
 
----@alias VideoHubCommand "GetStatus" | "SetInputLabels" | "SetOutputLabels" | "SetVideoOutputRouting" | "Ping"
+---@alias VideoHubCommand "GetStatus" | "SetInputLabels" | "SetOutputLabels" | "SetVideoOutputRouting" | "Ping" | "BatchCommand"
 ---@alias VideoHubField "Device"|"InputLabels"|"OutputLabels"|"Crosspoints"
 ---@alias VideoHubSection VideoHubField | "Preamble" | "OutputLocks" | "Configuration"
 
@@ -98,6 +100,21 @@ VideoHubCommandSectionMap = {
   SetVideoOutputRouting = VideoHubSections.Crosspoints,
 }
 
+
+---@alias CommandQueueCommand { cmdName: VideoHubCommandSectionMapKey, cmdArgs: [integer, integer|string][] }
+
+
+---@type CommandQueueClass<CommandQueueCommand>
+CommandQueue = CommandQueueClass:new(CommandQueueTimer, 0.1)
+CommandQueue:setFormatCallback(function(commands)
+  return VideoHub.FormatMultipleCommandsWithArgs(commands)
+end)
+CommandQueue:setSendCallback(function(cmdStr)
+  TelnetSendCommand("BatchCommand", cmdStr)
+end)
+
+
+
 ---@class VideoHubDevice
 ---@field Model string
 ---@field Name string
@@ -134,15 +151,14 @@ VideoHub = {
   Crosspoints = {},
 
   RequestStatus = function()
+    if not CommandQueue:isEmpty() then return end
     local sections = {
-      VideoHubSections.InputLabels,
-      VideoHubSections.OutputLabels,
-      VideoHubSections.Crosspoints,
+      "GetInputLabels",
+      "GetOutputLabels",
+      "GetVideoOutputRouting",
     }
     for _, section in ipairs(sections) do
-      local cmd = section .. "\n\n"
-      TelnetSendCommand("GetStatus", cmd)
-      -- TelnetWaitForResponse()
+      CommandQueue:enqueue({ cmdName = section, cmdArgs = nil })
     end
   end,
 
@@ -159,9 +175,7 @@ VideoHub = {
 
   ---@param labelPairs [number, string][]
   SetInputLabels = function(labelPairs)
-    local txLines = VideoHub.FormatCommandPairs(labelPairs)
-    local cmd = VideoHub.FormatCommand("SetInputLabels", txLines)
-    TelnetSendCommand("SetInputLabels", cmd)
+    CommandQueue:enqueue({ cmdName = "SetInputLabels", cmdArgs = labelPairs })
   end,
 
   ---@param outputIndex number
@@ -172,9 +186,7 @@ VideoHub = {
 
   ---@param outputPairs [number, string][]
   SetOutputLabels = function(outputPairs)
-    local txLines = VideoHub.FormatCommandPairs(outputPairs)
-    local cmd = VideoHub.FormatCommand("SetOutputLabels", txLines)
-    TelnetSendCommand("SetOutputLabels", cmd)
+    CommandQueue:enqueue({ cmdName = "SetOutputLabels", cmdArgs = outputPairs })
   end,
 
   ---@param outputIndex number
@@ -185,44 +197,127 @@ VideoHub = {
 
   ---@param routingPairs [number, number][]
   SetCrosspoints = function(routingPairs)
-    local txLines = VideoHub.FormatCommandPairs(routingPairs)
-    local cmd = VideoHub.FormatCommand("SetVideoOutputRouting", txLines)
-    TelnetSendCommand("SetVideoOutputRouting", cmd)
+    CommandQueue:enqueue({ cmdName = "SetVideoOutputRouting", cmdArgs = routingPairs })
+  end,
+
+  ---@param key number|string
+  ---@param value number|string
+  ---@return string
+  ---@return string
+  FormatCommandPair = function(key, value)
+    local function FormatNumber(v)
+      if type(v) == "string" then return v end
+      return string.format("%d", v - 1)
+    end
+    return FormatNumber(key), FormatNumber(value)
   end,
 
   --- Helper function to format command pairs into lines of "key value" for the given command sections
   ---@param pairs [number|string, number|string][]
   ---@return string[]
   FormatCommandPairs = function(pairs)
-
-    ---@param value number|string
-    ---@return string
-    function FormatNumber(value)
-      if type(value) == "string" then return value end
-      return string.format("%d", value - 1)
-    end
-
     local lines = {}
     for _, pair in ipairs(pairs) do
-      local key, value = pair[1], pair[2]
-      key, value = FormatNumber(key), FormatNumber(value)
+      local key, value = VideoHub.FormatCommandPair(pair[1], pair[2])
       table.insert(lines, key.." "..value)
     end
     return lines
   end,
 
+  --- Helper function to format a command with arguments, using the appropriate section header and newlines
+  ---@param cmdName VideoHubCommandSectionMapKey
+  ---@param args [number|string, number|string][] # array of key value pairs, where key and value are either numbers or strings.  Numbers will be formatted as 0-based indices, strings will be used as-is
+  ---@param noFinalNewline? boolean # if true, only add a single newline at the end instead of two, allowing multiple commands to be concatenated together
+  ---@return string
+  FormatCommandWithArgs = function(cmdName, args, noFinalNewline)
+    local argLines = {}
+    if args then
+      argLines = VideoHub.FormatCommandPairs(args)
+    else
+      table.insert(argLines, "")
+    end
+    return VideoHub.FormatCommand(cmdName, argLines, noFinalNewline)
+  end,
+
+  --- Helper function to format multiple commands with arguments, concatenating them together with appropriate section headers and newlines
+  ---@param cmds CommandQueueCommand[] # array of commands with their arguments
+  ---@param noFinalNewline? boolean # if true, only add a single newline at the end instead of two, allowing multiple command batches to be concatenated together
+  ---@return string
+  FormatMultipleCommandsWithArgs = function(cmds, noFinalNewline)
+
+    ---@type { [VideoHubCommandSectionMapKey]: table<string, string> }
+    local commandsBySection = {}
+    ---@type VideoHubCommandSectionMapKey[]
+    local commandsWithoutArgs = {}
+    for _, cmd in ipairs(cmds) do
+      if not commandsBySection[cmd.cmdName] then
+        commandsBySection[cmd.cmdName] = {}
+      end
+      if cmd.cmdArgs ~= nil and #cmd.cmdArgs > 0 then
+        -- ensure unique keys per command (taking the last value if duplicates are found)
+        for _, pair in ipairs(cmd.cmdArgs) do
+          local key, value = VideoHub.FormatCommandPair(pair[1], pair[2])
+          commandsBySection[cmd.cmdName][key] = value
+        end
+      else
+        table.insert(commandsWithoutArgs, cmd.cmdName)
+      end
+    end
+    -- remove any empty items in `commandsBySection` that are in `commandsWithoutArgs`
+    for _, cmdName in ipairs(commandsWithoutArgs) do
+      if commandsBySection[cmdName] and next(commandsBySection[cmdName]) == nil then
+        commandsBySection[cmdName] = nil
+      end
+    end
+    -- remove any commands in `commandsWithoutArgs` that have args in `commandsBySection`
+    local finalCommandsWithoutArgs = {}
+    for _, cmdName in ipairs(commandsWithoutArgs) do
+      if not commandsBySection[cmdName] then
+        table.insert(finalCommandsWithoutArgs, cmdName)
+      end
+    end
+
+    -- now format the commands with their args into the final command strings
+    local lines = {}
+    for cmdName, cmdArgs in pairs(commandsBySection) do
+      ---@type [string, string][]
+      local cmdArgsList = {}
+      for key, value in pairs(cmdArgs) do
+        table.insert(cmdArgsList, {key, value})
+      end
+      local cmdLines = VideoHub.FormatCommandWithArgs(cmdName, cmdArgsList, true)
+      table.insert(lines, cmdLines)
+    end
+    for _, cmdName in ipairs(finalCommandsWithoutArgs) do
+      local cmdLines = VideoHub.FormatCommandWithArgs(cmdName, {}, false)
+      table.insert(lines, cmdLines)
+    end
+    local fullCmd = table.concat(lines, "")
+    if noFinalNewline then
+      fullCmd = fullCmd .. "\n"
+    else
+      fullCmd = fullCmd .. "\n\n"
+    end
+    return fullCmd
+  end,
+
   --- Helper function to format a command given a section and lines, adding the appropriate header and newlines
   ---@param section VideoHubCommandSectionMapKey
   ---@param lines string[]
+  ---@param noFinalNewline? boolean # if true, only add a single newline at the end instead of two, allowing multiple commands to be concatenated together
   ---@return string
-  FormatCommand = function(section, lines)
+  FormatCommand = function(section, lines, noFinalNewline)
     local sectionHeader = VideoHubCommandSectionMap[section]
     local txLines = {sectionHeader}
     for _, line in ipairs(lines) do
       table.insert(txLines, line)
     end
     local cmd = table.concat(txLines, "\n")
-    cmd = cmd .. "\n\n"
+    if noFinalNewline then
+      cmd = cmd .. "\n"
+    else
+      cmd = cmd .. "\n\n"
+    end
     return cmd
   end,
 }
@@ -526,6 +621,7 @@ TelnetInstance.Events.Disconnected:RegisterCallback(function()
     PingTimer:Stop()
   end
   Controls.TelnetActive.Boolean = false
+  CommandQueue:setEnabled(false)
   VideoHubState:reset()
   VideoHubChangeEvents:reset()
   TelnetRXBuffer = ""
@@ -554,6 +650,7 @@ end)
 
 VideoHubChangeEvents.PreludeParsed:RegisterCallback(function()
   if VideoHubState:IsReady() then
+    CommandQueue:setEnabled(true)
     -- Send a ping immediately after prelude is parsed to ensure we can communicate with the device and to kick off status retrieval
     VideoHub.SendPing()
     if not PingTimer:IsRunning() then
