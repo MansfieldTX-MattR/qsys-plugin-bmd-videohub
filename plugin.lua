@@ -12,7 +12,7 @@ function GetPrettyName(props)
   return PluginInfo.PrettyName .. " " .. PluginInfo.Version
 end
 
---[[ #include "geometry.lua" ]]
+--[[ #include "lib/geometry.lua" ]]
 
 --[[ #include "pages.lua" ]]
 
@@ -32,9 +32,9 @@ end
 
 --Start event based logic
 if Controls then
-  --[[ #include "util.lua" ]]
-  --[[ #include "events.lua" ]]
-  --[[ #include "telnet.lua" ]]
-  --[[ #include "commandqueue.lua" ]]
+  --[[ #include "lib/util.lua" ]]
+  --[[ #include "lib/events.lua" ]]
+  --[[ #include "lib/telnet.lua" ]]
+  --[[ #include "lib/commandqueue.lua" ]]
   --[[ #include "runtime.lua" ]]
 end
