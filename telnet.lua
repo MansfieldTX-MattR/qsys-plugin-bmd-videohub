@@ -194,8 +194,9 @@ end
 function TelnetClient:SetIP(ip)
   local valid, validIP = self:ValidateIP(ip)
   if not valid then return false end
+  local changed = self.State.IP ~= validIP
   self.State.IP = validIP
-  if self.State.Enabled then
+  if changed and self.State.Enabled then
     self:Connect()
   end
   return true
@@ -208,8 +209,9 @@ end
 function TelnetClient:SetPort(portStrOrInt)
   local valid, validPort = self:ValidatePort(portStrOrInt)
   if not valid then return false end
+  local changed = self.State.Port ~= validPort
   self.State.Port = validPort
-  if self.State.Enabled then
+  if changed and self.State.Enabled then
     self:Connect()
   end
   return true
