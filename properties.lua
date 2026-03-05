@@ -21,6 +21,11 @@ function GetProperties()
       Min = 1,
       Max = 128,
     },
+    ["Show Routing Controls"] = {
+      Name = "Show Routing Controls",
+      Type = "boolean",
+      Value = true,
+    },
   }
 
 
@@ -28,9 +33,11 @@ function GetProperties()
   return {
     DesignProperties["Max Input Count"],
     DesignProperties["Max Output Count"],
+    DesignProperties["Show Routing Controls"],
   }
 end
 
 ---@class Properties
 ---@field ["Max Input Count"] TextControllerControls
 ---@field ["Max Output Count"] TextControllerControls
+---@field ["Show Routing Controls"] TextControllerControls

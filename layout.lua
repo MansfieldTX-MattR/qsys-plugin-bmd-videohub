@@ -104,8 +104,19 @@ function GetControlLayout(props)
     Input = props["Max Input Count"].Value or 12,
     Output = props["Max Output Count"].Value or 12,
   }
+  local showRoutingControls = props["Show Routing Controls"].Value
 
   local CurrentPage = PageNames[props["page_index"].Value]
+
+  -- Add a hidden layout item for crosspoints so their pins are created
+  for i = 1, maxCounts["Output"] do
+    layout["Crosspoints " .. i] = {
+      Style = "None",
+      Position = {0, 0},
+      Size = {0, 0},
+      PrettyName = string.format("Crosspoints~%i", i),
+    }
+  end
 
   ---@param labelType "Input" | "Output"
   function BuildLabelPage(labelType)
@@ -166,6 +177,9 @@ function GetControlLayout(props)
   elseif CurrentPage == "Route" then
     local inputCount = maxCounts["Input"]
     local outputCount = maxCounts["Output"]
+    if not showRoutingControls then
+      return layout, graphics
+    end
     local routeTableCellSize = XYPoint:new(36, 16)
     local inputLabelSize = XYPoint:new(64, 16)
     local inputLabelRightPadding = 4
@@ -241,13 +255,6 @@ function GetControlLayout(props)
 
     local k = 1
     for i = 1, outputCount do
-      -- Add a hidden layout item for crosspoints so their pins are created
-      layout["Crosspoints " .. i] = {
-        Style = "None",
-        Position = {0, 0},
-        Size = {0, 0},
-        PrettyName = string.format("Crosspoints~%i", i),
-      }
       local numberLabel = CreateLabel(tostring(i), outputNumberLabelCells[i])
       table.insert(graphics, numberLabel)
       local prettyName = string.format("OutputLabels~%i", i)

@@ -8,6 +8,8 @@ end
 MaxInputCount = Properties["Max Input Count"].Value or 12
 ---@diagnostic disable-next-line: undefined-global
 MaxOutputCount = Properties["Max Output Count"].Value or 12
+---@diagnostic disable-next-line: undefined-global
+ShowRoutingControls = Properties["Show Routing Controls"].Value
 
 Controls.TelnetActive.Boolean = false
 Controls.Status.Value = StatusType.NotPresent
@@ -740,11 +742,13 @@ VideoHubChangeEvents.Crosspoints:RegisterCallback(function()
       goto continue
     end
     CrosspointControls[i].Value = inputIndex
-    for j, buttonControl in ipairs(RouteMatrixButtons[i]) do
-      if j > MaxInputCount then
-        DebugPrint("Warning: received crosspoint for output index "..i.." input index "..j.." but no corresponding button control exists")
-      else
-        buttonControl.Boolean = (inputIndex == j)
+    if ShowRoutingControls then
+      for j, buttonControl in ipairs(RouteMatrixButtons[i]) do
+        if j > MaxInputCount then
+          DebugPrint("Warning: received crosspoint for output index "..i.." input index "..j.." but no corresponding button control exists")
+        else
+          buttonControl.Boolean = (inputIndex == j)
+        end
       end
     end
     ::continue::
@@ -784,7 +788,9 @@ function GatherRouteMatrixButtons()
     end
   end
 end
-GatherRouteMatrixButtons()
+if ShowRoutingControls then
+  GatherRouteMatrixButtons()
+end
 
 
 function SetupRouteMatrixButtonHandlers()
@@ -815,8 +821,9 @@ function SetupRouteMatrixButtonHandlers()
     ::continueOutput::
   end
 end
-SetupRouteMatrixButtonHandlers()
-
+if ShowRoutingControls then
+  SetupRouteMatrixButtonHandlers()
+end
 
 for i, inputLabelControl in ipairs(InputLabelControls) do
 
