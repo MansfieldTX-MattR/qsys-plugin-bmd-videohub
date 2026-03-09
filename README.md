@@ -1,32 +1,79 @@
-# BasePlugin
+# qsys-plugin-bmd-videohub
 
-This is a template plugin that you can download with some pre-written Lua code to get you started.
+A Q-SYS plugin for controlling Blackmagic Design Videohub matrix switchers.
 
-Please note when cloning, the --recursive call should be used to ensure proper cloning of the PluginCompile submodule
+## Project Links
 
-## PluginCompile
+- [GitHub Repository](https://github.com/MansfieldTX-MattR/qsys-plugin-bmd-videohub)
 
-This is a submodule built for VS Code. Please note it is not intended to be used for any other source code editors.
 
-The submodule will take the individual source Lua files in your local repo, compile them into a singular qplug file, and auto increment the desired octet of the BuildVersion.
-For first time builds, it will auto-generate an UUID for you plugin as well.
+## Features
 
-Make sure to map a keyboard shortcut by navigating to File>Preferences>Keyboard Shortcuts. Type in "Tasks" and assign the desired shortcut to the Tasks: Run Build Task command
 
-### Build Arguments
+- Routing control and monitoring
+- Label control and monitoring (for both inputs and outputs)
+- Support for multiple Videohub models
+  - Tested with Smart Videohub 12x12 Clean Switch
+- Control lockout mode to act as a "read-only" interface if desired
+- Real-time status updates
+- Status Monitoring support (for use with Q-SYS Reflect, etc.)
 
-<ver_maj> : increments the first octet of BuildVersion to denote a major version change
 
-<ver_min> : increments the second octet of BuildVersion to denote a minor version change
+## Usage
 
-<ver_fix> : increments the third octet of BuildVersion to denote a bugfix
+### Setup
 
-<ver_dev> : increments the fourth octet of BuildVersion to denote a new development version
+When you first add the plugin component, set the "Max Input Count" and "Max Output Count" properties to match your Videohub model. For example, for a Smart Videohub 12x12, set both to 12.
 
-< CANCEL > : cancels the build process
-  
-Please note that the public version (PluginVersion) only displays first and second octet. The second octets are intended for developer use and version tracking.
+Once the design is running (or in emulation mode), configure the "IP Address" and "Port" in the "Setup" page. The default port  (9990) should already be correct in most situations.
 
-## Support
 
-If you have any questions or concerns, please contact qsyscontrolfeedback@qsc.com
+### Control
+
+Use the "Route" page to control routing. The layout is similar to the built-in Q-SYS routing matrix, so it should be familiar to users of that component.
+
+Use the "Input Labels" and "Output Labels" pages to control the labels for inputs and outputs, respectively. You can set the label text and also monitor changes made directly on the Videohub.
+
+Control Pins are provided for:
+
+- `Crosspoints`
+  - One pin per output, with the input number as the value
+  - Both input and output pins are provided for control and monitoring
+- `InputLabels`
+  - One pin per input, with the label text as the value
+  - Both input and output pins are provided for control and monitoring
+- `OutputLabels`
+  - One pin per output, with the label text as the value
+  - Both input and output pins are provided for control and monitoring
+- `ControlLockout`
+  - One pin, with a boolean value to enable/disable control lockout
+  - This is an input pin only
+- `Status`
+  - One pin, using the standard Q-SYS status pin format
+  - This is an output pin only
+- `DeviceId`
+  - One pin, with the detected device ID as the value
+  - This is an output pin only
+- `DeviceModel`
+  - One pin, with the detected device model as the value
+  - This is an output pin only
+- `DeviceName`
+  - One pin, with the detected device name as the value
+  - This is an output pin only
+- `NumInputs`
+  - One pin, with the detected number of inputs as the value
+  - This is an output pin only
+- `NumOutputs`
+  - One pin, with the detected number of outputs as the value
+  - This is an output pin only
+
+
+## Known Issues
+
+- Snapshot and restore functionality is not yet implemented.
+- Not tested with all Videohub models, so compatibility may vary.
+
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
