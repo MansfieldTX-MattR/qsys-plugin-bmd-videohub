@@ -6,6 +6,7 @@
     <title>Blackmagic Videohub</title>
     <authors>Matt Reid</authors>
     <description>A plugin to control Blackmagic Videohub routers.</description>
+    <projectUrl>https://github.com/MansfieldTX-MattR/qsys-plugin-bmd-videohub</projectUrl>
     <icon>assets/icon.png</icon>
     <iconUrl>https://raw.githubusercontent.com/MansfieldTX-MattR/qsys-plugin-bmd-videohub/main/assets/icon.png</iconUrl>
     <license type="expression">MIT</license>
