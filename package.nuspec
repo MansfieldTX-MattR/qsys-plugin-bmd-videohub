@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>MansfieldTX-MattR.qsys-plugin.bmd.videohub</id>
+    <version>1.0.1</version>
+    <title>Blackmagic Videohub</title>
+    <authors>Matt Reid</authors>
+    <description>A plugin to control Blackmagic Videohub routers.</description>
+    <icon>assets/icon.png</icon>
+    <iconUrl>https://raw.githubusercontent.com/MansfieldTX-MattR/qsys-plugin-bmd-videohub/main/assets/icon.png</iconUrl>
+    <license type="expression">MIT</license>
+  </metadata>
+  <files>
+    <file src="*.qplug" target="content" />
+    <file src="assets/icon.png" target="assets" />
+  </files>
+</package>
