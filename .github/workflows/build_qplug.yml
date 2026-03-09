@@ -57,6 +57,8 @@ jobs:
     needs: build
     if: ${{ github.event.inputs.release }}
     runs-on: windows-latest
+    permissions:
+      id-token: write  # enable GitHub OIDC token issuance for this job
 
     steps:
     - uses: actions/checkout@v6
