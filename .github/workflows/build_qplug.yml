@@ -11,8 +11,9 @@ on:
     inputs:
       release:
         description: 'Whether to create a release and publish to NuGet (if tag starts with v)'
+        type: boolean
         required: false
-        default: 'false'
+        default: false
 
 
 jobs:
