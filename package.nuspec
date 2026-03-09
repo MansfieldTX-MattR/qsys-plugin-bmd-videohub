@@ -7,6 +7,7 @@
     <authors>Matt Reid</authors>
     <description>A plugin to control Blackmagic Videohub routers.</description>
     <projectUrl>https://github.com/MansfieldTX-MattR/qsys-plugin-bmd-videohub</projectUrl>
+    <readme>docs/README.md</readme>
     <icon>assets/icon.png</icon>
     <iconUrl>https://raw.githubusercontent.com/MansfieldTX-MattR/qsys-plugin-bmd-videohub/main/assets/icon.png</iconUrl>
     <license type="expression">MIT</license>
@@ -14,5 +15,6 @@
   <files>
     <file src="*.qplug" target="content" />
     <file src="assets/icon.png" target="assets" />
+    <file src="README.md" target="docs/" />
   </files>
 </package>
