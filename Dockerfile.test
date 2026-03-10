@@ -1,0 +1,19 @@
+FROM akorn/luarocks:lua5.1-alpine AS base
+
+RUN luarocks install telescope
+
+WORKDIR /app
+COPY *.lua ./
+COPY lib ./lib
+COPY tests ./tests
+
+FROM base AS test
+
+
+COPY --chmod=755 <<EOT /app/run_tests.sh
+#!/bin/sh
+export TEST_ENV=1
+tsc -f tests/*.lua
+EOT
+
+CMD ["/app/run_tests.sh"]
