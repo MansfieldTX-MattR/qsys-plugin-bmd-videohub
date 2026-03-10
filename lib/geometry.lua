@@ -35,17 +35,33 @@ function XYPoint:AsArray()
   return { self.x, self.y }
 end
 
----@param other XYPoint
+---@param other XYPoint|number
 ---@return XYPoint
 function XYPoint:Add(other)
-  return XYPoint:new(self:X() + other:X(), self:Y() + other:Y())
+  local otherX, otherY
+  if type(other) == "number" then
+    otherX, otherY = other, other
+  elseif type(other) == "table" then
+    otherX, otherY = other:X(), other:Y()
+  else
+    error("Invalid argument for addition")
+  end
+  return XYPoint:new(self:X() + otherX, self:Y() + otherY)
 end
 XYPoint.__add = XYPoint.Add
 
----@param other XYPoint
+---@param other XYPoint|number
 ---@return XYPoint
 function XYPoint:Subtract(other)
-  return XYPoint:new(self:X() - other:X(), self:Y() - other:Y())
+  local otherX, otherY
+  if type(other) == "number" then
+    otherX, otherY = other, other
+  elseif type(other) == "table" then
+    otherX, otherY = other:X(), other:Y()
+  else
+    error("Invalid argument for subtraction")
+  end
+  return XYPoint:new(self:X() - otherX, self:Y() - otherY)
 end
 XYPoint.__sub = XYPoint.Subtract
 
