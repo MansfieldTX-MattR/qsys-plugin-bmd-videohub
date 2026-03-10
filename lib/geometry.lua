@@ -247,3 +247,13 @@ function Rectangle:DivideVertically(count)
   local cells = self:Divide(XYPoint:new(count, 1))
   return cells[1]
 end
+
+
+-- This is needed for testing purposes to allow the classes to be imported
+-- into the test files without causing errors in the actual plugin environment.
+if os.getenv("TEST_ENV") then
+  return {
+    XYPoint = XYPoint,
+    Rectangle = Rectangle
+  }
+end

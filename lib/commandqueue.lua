@@ -233,3 +233,16 @@ function CommandQueueClass:processNext()
   StopTimerIfNotRetriggered()
   self.processing = false
 end
+
+
+-- This is needed for testing purposes to allow the classes to be imported
+-- into the test files without causing errors in the actual plugin environment.
+if os.getenv("TEST_ENV") then
+  function DebugPrint(msg)
+    print("[CommandQueueClass DEBUG] "..tostring(msg))
+  end
+  return {
+    QueueList = QueueList,
+    CommandQueueClass = CommandQueueClass
+  }
+end

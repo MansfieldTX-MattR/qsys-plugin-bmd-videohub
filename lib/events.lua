@@ -64,3 +64,12 @@ end
 function Event:RegisterCallback(callback)
   table.insert(self.callbacks, callback)
 end
+
+
+-- This is needed for testing purposes to allow the classes to be imported
+-- into the test files without causing errors in the actual plugin environment.
+if os.getenv("TEST_ENV") then
+  return {
+    Event = Event
+  }
+end
