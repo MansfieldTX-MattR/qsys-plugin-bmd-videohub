@@ -40,38 +40,22 @@ Use the "Route" page to control routing. The layout is similar to the built-in Q
 
 Use the "Input Labels" and "Output Labels" pages to control the labels for inputs and outputs, respectively. You can set the label text and also monitor changes made directly on the Videohub.
 
-Control Pins are provided for:
+#### Control Pins
 
-- `Crosspoints`
-  - One pin per output, with the input number as the value
-  - Both input and output pins are provided for control and monitoring
-- `InputLabels`
-  - One pin per input, with the label text as the value
-  - Both input and output pins are provided for control and monitoring
-- `OutputLabels`
-  - One pin per output, with the label text as the value
-  - Both input and output pins are provided for control and monitoring
-- `ControlLockout`
-  - One pin, with a boolean value to enable/disable control lockout
-  - This is an input pin only
-- `Status`
-  - One pin, using the standard Q-SYS status pin format
-  - This is an output pin only
-- `DeviceId`
-  - One pin, with the detected device ID as the value
-  - This is an output pin only
-- `DeviceModel`
-  - One pin, with the detected device model as the value
-  - This is an output pin only
-- `DeviceName`
-  - One pin, with the detected device name as the value
-  - This is an output pin only
-- `NumInputs`
-  - One pin, with the detected number of inputs as the value
-  - This is an output pin only
-- `NumOutputs`
-  - One pin, with the detected number of outputs as the value
-  - This is an output pin only
+
+| Name                  | Description                             | Direction       | Type    |
+| ---                   | ---                                     | ---             | ---     |
+| **Crosspoints *n***   | The current input routed to output *n*  | Input / Output  | Integer |
+| **InputLabels *n***   | Label text for input *n*                | Input / Output  | String  |
+| **OutputLabels *n***  | Label text for output *n*               | Input / Output  | String  |
+| **ControlLockout**    | Enable or disable control lockout       | Input           | Boolean |
+| **Status**            | The device / connection status          | Output          | Status  |
+| **DeviceId**          | The detected device's ID                | Output          | String  |
+| **DeviceModel**       | The detected device's model             | Output          | String  |
+| **DeviceName**        | The detected device's name              | Output          | String  |
+| **NumInputs**         | The detected number of inputs           | Output          | Integer |
+| **NumOutputs**        | The detected number of outputs          | Output          | Integer |
+
 
 
 ## Known Issues
