@@ -4,7 +4,13 @@ A Q-SYS plugin for controlling Blackmagic Design Videohub matrix switchers.
 
 ## Project Links
 
-- [GitHub Repository](https://github.com/MansfieldTX-MattR/qsys-plugin-bmd-videohub)
+<dl>
+  <dt>Source Code</dt>
+  <dd>https://github.com/MansfieldTX-MattR/qsys-plugin-bmd-videohub</dd>
+
+  <dt>Downloads (qplug files)</dt>
+  <dd>https://github.com/MansfieldTX-MattR/qsys-plugin-bmd-videohub/releases</dd>
+</dl>
 
 
 ## Features
