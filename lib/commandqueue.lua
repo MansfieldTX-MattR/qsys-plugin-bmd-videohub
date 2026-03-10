@@ -178,6 +178,7 @@ function CommandQueueClass:enqueue(command)
   self.timerGuard = false
 end
 
+---@private
 function CommandQueueClass:retriggerTimer()
   if self.timer:IsRunning() then
     self.timer:Stop()
@@ -185,6 +186,7 @@ function CommandQueueClass:retriggerTimer()
   self.timer:Start(self.timerInterval)
 end
 
+---@private
 function CommandQueueClass:processNext()
   if self.processing then
     DebugPrint("CommandQueueClass:processNext - already processing, skipping this call to avoid reentrancy")
