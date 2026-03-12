@@ -53,60 +53,6 @@ jobs:
       with:
         files: ./*.qplug
 
-  nuget:
-    needs: build
-    if: ${{ github.event.inputs.nuget_release }}
-    runs-on: windows-latest
-    permissions:
-      id-token: write  # enable GitHub OIDC token issuance for this job
-
-    steps:
-    - uses: actions/checkout@v6
-
-    - name: Download compiled plugin
-      uses: actions/download-artifact@v7
-      with:
-        name: compiled-plugin
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version-file: .python-version
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-
-    - name: Install Python dependencies
-      run: |
-        uv venv
-        uv pip install -r requirements.in
-
-    - name: Update nuspec from info.lua
-      run: uv run python scripts/update_nuspec_from_info.py update-nuspec
-
-    - name: Setup NuGet
-      uses: nuget/setup-nuget@v2
-
-    - name: Pack NuGet package
-      run: nuget pack package.nuspec -OutputDirectory ./nupkg
-
-    - name: Upload NuGet package artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: nuget-package
-        path: ./nupkg/*.nupkg
-
-    # Get a short-lived NuGet API key
-    - name: NuGet login (OIDC → temp API key)
-      uses: NuGet/login@v1
-      id: login
-      with:
-        user: ${{ secrets.NUGET_USER }}
-
-    # Push the package
-    - name: NuGet push
-      run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
-      shell: bash
 
   sleet:
     needs: build
