@@ -147,7 +147,7 @@ jobs:
       uses: actions/setup-dotnet@v4
 
     - name: Install Mono
-      run: sudo apt-get install -y mono-runtime
+      run: sudo apt-get install -y mono-complete
 
     - name: Setup NuGet
       uses: nuget/setup-nuget@v2
