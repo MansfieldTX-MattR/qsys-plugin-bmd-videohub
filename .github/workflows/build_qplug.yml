@@ -17,6 +17,24 @@ on:
 
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    container: akorn/luarocks:lua5.1-alpine
+    steps:
+    - name: Update Git
+      run: apk update && apk add -u git
+    - uses: actions/checkout@v6
+      with:
+        submodules: 'recursive'
+
+    - name: Install dependencies
+      run: luarocks install telescope
+
+    - name: Run tests
+      run: tsc -f tests/*.lua
+      env:
+        TEST_ENV: "1"
+
   build:
     runs-on: windows-latest
 
@@ -36,7 +54,7 @@ jobs:
         path: ./*.qplug
 
   release:
-    needs: build
+    needs: [build, test]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -55,7 +73,7 @@ jobs:
 
 
   sleet:
-    needs: build
+    needs: [build, test]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
