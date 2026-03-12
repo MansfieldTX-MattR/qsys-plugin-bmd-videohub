@@ -120,7 +120,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     env:
       SLEET_FEED_TYPE: local
-      SLEET_FEED_PATH: feed
+      SLEET_FEED_PATH: ${{ github.workspace }}/feed
 
     steps:
     - uses: actions/checkout@v6
