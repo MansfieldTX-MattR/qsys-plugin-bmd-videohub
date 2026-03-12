@@ -119,7 +119,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     env:
-      SLEET_FEED_PATH: ./feed
+      SLEET_FEED_TYPE: local
+      SLEET_FEED_PATH: feed
 
     steps:
     - uses: actions/checkout@v6
@@ -170,18 +171,15 @@ jobs:
       run: rm -rf feed/.git
       shell: bash
 
-    - name: Create Sleet config
-      run: sleet createconfig --local --output sleet.json
-
     - name: Initialize Sleet feed
       if: steps.fetch-feed.outcome != 'success'
       run: |
         mkdir -p feed
-        sleet init --config sleet.json --source feed
+        sleet init --config none
       shell: bash
 
     - name: Push package to Sleet feed
-      run: sleet push ./nupkg/*.nupkg --source feed --skip-existing
+      run: sleet push ./nupkg/*.nupkg --config none --skip-existing
 
     - name: Disable Jekyll processing
       run: touch feed/.nojekyll
