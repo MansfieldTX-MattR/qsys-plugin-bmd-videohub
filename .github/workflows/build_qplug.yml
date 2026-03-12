@@ -118,6 +118,8 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      SLEET_FEED_PATH: ./feed
 
     steps:
     - uses: actions/checkout@v6
@@ -170,8 +172,6 @@ jobs:
 
     - name: Create Sleet config
       run: sleet createconfig --local --output sleet.json
-      env:
-        SLEET_FEED_PATH: ./feed
 
     - name: Initialize Sleet feed
       if: steps.fetch-feed.outcome != 'success'
