@@ -171,12 +171,14 @@ jobs:
       run: rm -rf feed/.git
       shell: bash
 
+    - name: Create feed directory
+      if: steps.fetch-feed.outcome != 'success'
+      run: mkdir -p feed
+      shell: bash
+
     - name: Initialize Sleet feed
       if: steps.fetch-feed.outcome != 'success'
-      run: |
-        mkdir -p feed
-        sleet init --config none
-      shell: bash
+      run: sleet init --config none
 
     - name: Push package to Sleet feed
       run: sleet push ./nupkg/*.nupkg --config none --skip-existing
