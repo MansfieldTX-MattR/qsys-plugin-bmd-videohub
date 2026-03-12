@@ -111,7 +111,7 @@ jobs:
   sleet:
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       pages: write
       id-token: write
@@ -166,6 +166,7 @@ jobs:
     - name: Remove git metadata from feed
       if: steps.fetch-feed.outcome == 'success'
       run: rm -rf feed/.git
+      shell: bash
 
     - name: Create Sleet config
       run: sleet createconfig --local --output sleet.json
@@ -177,12 +178,14 @@ jobs:
       run: |
         mkdir -p feed
         sleet init --source feed
+      shell: bash
 
     - name: Push package to Sleet feed
       run: sleet push ./nupkg/*.nupkg --source feed --skip-existing
 
     - name: Disable Jekyll processing
       run: touch feed/.nojekyll
+      shell: bash
 
     - name: Configure GitHub Pages
       uses: actions/configure-pages@v5
