@@ -14,11 +14,6 @@ on:
         type: boolean
         required: false
         default: false
-      sleet_release:
-        description: 'Whether to publish to GitHub Pages feed'
-        type: boolean
-        required: false
-        default: false
 
 
 jobs:
@@ -115,7 +110,7 @@ jobs:
 
   sleet:
     needs: build
-    if: ${{ github.event.inputs.sleet_release }}
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -184,7 +179,7 @@ jobs:
         sleet init --source feed
 
     - name: Push package to Sleet feed
-      run: sleet push ./nupkg/*.nupkg --source feed
+      run: sleet push ./nupkg/*.nupkg --source feed --skip-existing
 
     - name: Disable Jekyll processing
       run: touch feed/.nojekyll
