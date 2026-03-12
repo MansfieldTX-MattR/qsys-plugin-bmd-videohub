@@ -177,7 +177,7 @@ jobs:
       if: steps.fetch-feed.outcome != 'success'
       run: |
         mkdir -p feed
-        sleet init --source feed
+        sleet init --config sleet.json --source feed
       shell: bash
 
     - name: Push package to Sleet feed
