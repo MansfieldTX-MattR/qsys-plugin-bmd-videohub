@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     container: akorn/luarocks:lua5.1-alpine
     steps:
+    - name: Update Git
+      run: apk update && apk add -u git
     - uses: actions/checkout@v6
       with:
         submodules: 'recursive'
