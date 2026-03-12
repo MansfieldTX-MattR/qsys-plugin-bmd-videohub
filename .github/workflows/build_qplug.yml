@@ -181,7 +181,7 @@ jobs:
       run: sleet init --config none
 
     - name: Push package to Sleet feed
-      run: sleet push ./nupkg/*.nupkg --config none --skip-existing
+      run: sleet push (Get-Item ./nupkg/*.nupkg) --config none --skip-existing
 
     - name: Disable Jekyll processing
       run: touch feed/.nojekyll
