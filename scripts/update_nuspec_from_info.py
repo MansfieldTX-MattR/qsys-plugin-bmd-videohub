@@ -4,6 +4,7 @@ from string import Template
 from xml.etree import ElementTree
 from packaging.version import Version
 
+import click
 from luaparser import ast
 from luaparser import astnodes
 
@@ -194,6 +195,59 @@ def update_nuspec_version(plugin_info: PluginInfo):
     tree.write(NUSPEC_FILE, encoding="utf-8", xml_declaration=True)
 
 
-if __name__ == "__main__":
+@click.group()
+def cli():
+    pass
+
+@cli.command()
+@click.option(
+    "--full",
+    is_flag=True,
+    help="Print the full version including build version (e.g. 1.0.0+build.1)"
+)
+def get_plugin_version(full: bool):
+    """Get the full version of the plugin
+
+    >>> python update_nuspec_from_info.py get-plugin-version
+    1.0.0
+
+    >>> python update_nuspec_from_info.py get-plugin-version --full
+    1.0.0+build.1
+
+    """
+    plugin_info = get_plugin_info()
+    v = plugin_info.full_version if full else plugin_info.Version
+    click.echo(v)
+
+
+@cli.command()
+def get_nuspec_version():
+    """Get the version field from the package.nuspec file
+
+    >>> python update_nuspec_from_info.py get-nuspec-version
+    1.0.0
+
+    """
+    xmlns = "http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
+    ElementTree.register_namespace("", xmlns)
+    tree = ElementTree.parse(NUSPEC_FILE)
+    root = tree.getroot()
+    def ns_tag(tag: str) -> str:
+        return f"{{{xmlns}}}{tag}"
+    version_elem = root.find(f".//{ns_tag('metadata')}/{ns_tag('version')}")
+    assert version_elem is not None, "version element not found in nuspec file"
+    click.echo(version_elem.text)
+
+
+@cli.command()
+def update_nuspec():
+    """Update the version, author, and description fields in the package.nuspec file
+    with the values from the PluginInfo instance
+    """
     plugin_info = get_plugin_info()
     update_nuspec_version(plugin_info)
+
+
+
+if __name__ == "__main__":
+    cli()
