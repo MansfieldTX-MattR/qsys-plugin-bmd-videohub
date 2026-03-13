@@ -62,7 +62,7 @@ jobs:
 
     steps:
     - name: Download compiled plugin
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: compiled-plugin
 
@@ -82,7 +82,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Download compiled plugin
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: compiled-plugin
 
