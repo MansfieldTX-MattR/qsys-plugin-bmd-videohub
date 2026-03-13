@@ -94,7 +94,7 @@ class PluginInfo(NamedTuple):
 
 
 
-def get_plugin_info() -> PluginInfo:
+def get_plugin_info(info_file: Path = LUA_INFO_FILE) -> PluginInfo:
     """Parse the info.lua file and return a PluginInfo instance with the data
     """
     def visit_Table(node: astnodes.Table) -> str|int|dict|list:
@@ -157,7 +157,7 @@ def get_plugin_info() -> PluginInfo:
         return visit_Table(table_node)
 
     def parse() -> PluginInfoTD:
-        with open(LUA_INFO_FILE, "r") as f:
+        with open(info_file, "r") as f:
             lua_code = f.read()
         tree = ast.parse(lua_code)
         for node in ast.walk(tree):
@@ -171,13 +171,13 @@ def get_plugin_info() -> PluginInfo:
     return PluginInfo.from_dict(info_dict)
 
 
-def update_nuspec_version(plugin_info: PluginInfo):
+def update_nuspec_version(plugin_info: PluginInfo, nuspec_file: Path = NUSPEC_FILE):
     """Update the version, author, and description fields in the package.nuspec file
     with the values from the PluginInfo instance
     """
     xmlns = "http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
     ElementTree.register_namespace("", xmlns)
-    tree = ElementTree.parse(NUSPEC_FILE)
+    tree = ElementTree.parse(nuspec_file)
     root = tree.getroot()
     def ns_tag(tag: str) -> str:
         return f"{{{xmlns}}}{tag}"
@@ -192,7 +192,7 @@ def update_nuspec_version(plugin_info: PluginInfo):
     assert description_elem is not None, "description element not found in nuspec file"
     description_elem.text = plugin_info.Description
 
-    tree.write(NUSPEC_FILE, encoding="utf-8", xml_declaration=True)
+    tree.write(nuspec_file, encoding="utf-8", xml_declaration=True)
 
 
 @click.group()
