@@ -103,7 +103,7 @@ jobs:
       run: uv run python scripts/update_nuspec_from_info.py update-nuspec
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
 
     - name: Install Mono
       run: sudo apt-get install -y mono-complete
