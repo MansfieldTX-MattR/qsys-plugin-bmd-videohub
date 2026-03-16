@@ -243,10 +243,10 @@ function Rectangle:Divide(xyCount)
 end
 Rectangle.__div = Rectangle.Divide
 
---- Subdivide the rectangle into `count` horizontal slices
+--- Subdivide the rectangle into `count` rows (across the y-axis)
 ---@param count integer
 ---@return Rectangle[]
-function Rectangle:DivideHorizontally(count)
+function Rectangle:MakeRows(count)
   local cells = self:Divide(XYPoint:new(1, count))
   -- Extract the first column from each row to get a single array of rectangles
   local columnCells = {}
@@ -256,10 +256,10 @@ function Rectangle:DivideHorizontally(count)
   return columnCells
 end
 
---- Subdivide the rectangle into `count` vertical slices
+--- Subdivide the rectangle into `count` columns (across the x-axis)
 ---@param count integer
 ---@return Rectangle[]
-function Rectangle:DivideVertically(count)
+function Rectangle:MakeColumns(count)
   local cells = self:Divide(XYPoint:new(count, 1))
   return cells[1]
 end

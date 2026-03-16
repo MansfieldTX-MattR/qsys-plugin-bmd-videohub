@@ -170,9 +170,9 @@ context("geometry", function()
         end
       end
     end)
-    test("should be able to divide a rectangle into an array of vertical cells", function()
+    test("should be able to divide a rectangle into an array of rows", function()
       local rect = geometry.Rectangle:new(geometry.XYPoint:new(1, 2), geometry.XYPoint:new(100, 100))
-      local cells = rect:DivideHorizontally(10)
+      local cells = rect:MakeRows(10)
       assert_equal(10, #cells)
       for i, cell in ipairs(cells) do
         assert_equal(1, cell:Left())
@@ -181,9 +181,9 @@ context("geometry", function()
         assert_equal(10, cell:Height())
       end
     end)
-    test("should be able to divide a rectangle into an array of horizontal cells", function()
+    test("should be able to divide a rectangle into an array of columns", function()
       local rect = geometry.Rectangle:new(geometry.XYPoint:new(1, 2), geometry.XYPoint:new(100, 100))
-      local cells = rect:DivideVertically(10)
+      local cells = rect:MakeColumns(10)
       assert_equal(10, #cells)
       for i, cell in ipairs(cells) do
         assert_equal(1 + (i - 1) * 10, cell:Left())

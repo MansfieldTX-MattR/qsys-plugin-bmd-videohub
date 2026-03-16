@@ -151,7 +151,7 @@ function GetControlLayout(props)
     )
 
     for rowIndex = 1, numRows do
-      local rowCells = rowRect:DivideVertically(countPerRow)
+      local rowCells = rowRect:MakeColumns(countPerRow)
       if #rowCells ~= countPerRow then
         error(string.format("Expected %i cells in row, got %i", countPerRow, #rowCells))
       end
@@ -195,12 +195,12 @@ function GetControlLayout(props)
     XYPoint:new(routeTableInnerX, upperRowYSpacing),
       XYPoint:new(outputNumberLabelSize:X() * outputCount, outputNumberLabelSize:Y())
     )
-    local outputNumberLabelCells = outputNumberLabelRowRect:DivideVertically(outputCount)
+    local outputNumberLabelCells = outputNumberLabelRowRect:MakeColumns(outputCount)
     local outputLabelRowRect = Rectangle:new(
       outputNumberLabelRowRect:BottomLeft() + XYPoint:new(0, upperRowYSpacing),
       XYPoint:new(outputNumberLabelRowRect:Width(), outputLabelSize:Y())
     )
-    local outputLabelCells = outputLabelRowRect:DivideVertically(outputCount)
+    local outputLabelCells = outputLabelRowRect:MakeColumns(outputCount)
     local routeTableRect = Rectangle:new(
       outputLabelRowRect:BottomLeft() + XYPoint:new(0, upperRowYSpacing),
       routeTableCellSize * XYPoint:new(outputCount, inputCount)
@@ -221,7 +221,7 @@ function GetControlLayout(props)
       XYPoint:new(inputLabelRightPadding, routeTableRect:Top()),
       inputLabelSize * XYPoint:new(1, inputCount)
     )
-    local inputLabelCells = inputLabelRect:DivideHorizontally(inputCount)
+    local inputLabelCells = inputLabelRect:MakeRows(inputCount)
     local inputLabelGroupBoxRect = Rectangle.FromBounds(
       XYPoint:new(0, inputLabelRect:Top() - upperRowYSpacing),
       XYPoint:new(
@@ -300,7 +300,7 @@ function GetControlLayout(props)
         totalHeight
       )
     )
-    local rowOuterRects = outerRect:DivideHorizontally(numRows)
+    local rowOuterRects = outerRect:MakeRows(numRows)
 
     ---@type Rectangle[]
     local rowInnerRects = {}
