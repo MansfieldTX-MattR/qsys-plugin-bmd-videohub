@@ -317,6 +317,9 @@ function Rectangle:Divide(xyCount, spacing)
   if spacing then
     local totalSpacing = spacing * (xyCount - XYPoint:new(1, 1))
     cellSize = (self.Size - totalSpacing) / xyCount
+    if cellSize:X() <= 0 or cellSize:Y() <= 0 then
+      error("Spacing is too large for the given rectangle and xyCount")
+    end
   end
   ---@type Rectangle[][]
   local cellRows = {}
