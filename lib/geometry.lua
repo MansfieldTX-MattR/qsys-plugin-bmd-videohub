@@ -171,7 +171,7 @@ function Rectangle.FromBounds(leftTop, rightBottom)
   return Rectangle:new(position, size)
 end
 
--- -@private
+
 ---@param padding Padding
 ---@return PaddingTable
 function Rectangle:ParsePadding(padding)
