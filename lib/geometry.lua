@@ -174,7 +174,7 @@ end
 
 ---@param padding Padding
 ---@return PaddingTable
-function Rectangle:ParsePadding(padding)
+function Rectangle.ParsePadding(padding)
   ---@type PaddingTable
   local appliedPadding = {
     top = 0,
@@ -207,7 +207,7 @@ end
 ---@param padding Padding
 ---@return Rectangle
 function Rectangle:WithInnerPadding(padding)
-  local appliedPadding = self:ParsePadding(padding)
+  local appliedPadding = self.ParsePadding(padding)
   local posOffset = XYPoint:new(appliedPadding.left, appliedPadding.top)
   local sizeOffset = XYPoint:new(appliedPadding.left + appliedPadding.right, appliedPadding.top + appliedPadding.bottom)
   return Rectangle:new(self.Position + posOffset, self.Size - sizeOffset)
@@ -216,7 +216,7 @@ end
 ---@param padding Padding
 ---@return Rectangle
 function Rectangle:WithOuterPadding(padding)
-  local appliedPadding = self:ParsePadding(padding)
+  local appliedPadding = self.ParsePadding(padding)
   local posOffset = XYPoint:new(-appliedPadding.left, -appliedPadding.top)
   local sizeOffset = XYPoint:new(appliedPadding.left + appliedPadding.right, appliedPadding.top + appliedPadding.bottom)
   return Rectangle:new(self.Position + posOffset, self.Size + sizeOffset)
