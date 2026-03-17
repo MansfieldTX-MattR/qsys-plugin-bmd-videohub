@@ -113,6 +113,8 @@ end
 XYPoint.__div = XYPoint.Divide
 
 
+---@alias PaddingTable {top?: number, right?: number, bottom?: number, left?: number}
+---@alias Padding PaddingTable|number|XYPoint
 
 
 ---@class Rectangle
@@ -167,6 +169,57 @@ function Rectangle.FromBounds(leftTop, rightBottom)
   local position = leftTop
   local size = rightBottom - leftTop
   return Rectangle:new(position, size)
+end
+
+-- -@private
+---@param padding Padding
+---@return PaddingTable
+function Rectangle:ParsePadding(padding)
+  ---@type PaddingTable
+  local appliedPadding = {
+    top = 0,
+    right = 0,
+    bottom = 0,
+    left = 0,
+  }
+  if type(padding) == "number" then
+    appliedPadding.top = padding
+    appliedPadding.right = padding
+    appliedPadding.bottom = padding
+    appliedPadding.left = padding
+  elseif XYPoint:IsInstance(padding) then
+    ---@cast padding XYPoint
+    appliedPadding.top = padding:Y()
+    appliedPadding.right = padding:X()
+    appliedPadding.bottom = padding:Y()
+    appliedPadding.left = padding:X()
+  elseif type(padding) == "table" then
+    appliedPadding.top = padding.top or 0
+    appliedPadding.right = padding.right or 0
+    appliedPadding.bottom = padding.bottom or 0
+    appliedPadding.left = padding.left or 0
+  else
+    error("Invalid padding value")
+  end
+  return appliedPadding
+end
+
+---@param padding Padding
+---@return Rectangle
+function Rectangle:WithInnerPadding(padding)
+  local appliedPadding = self:ParsePadding(padding)
+  local posOffset = XYPoint:new(appliedPadding.left, appliedPadding.top)
+  local sizeOffset = XYPoint:new(appliedPadding.left + appliedPadding.right, appliedPadding.top + appliedPadding.bottom)
+  return Rectangle:new(self.Position + posOffset, self.Size - sizeOffset)
+end
+
+---@param padding Padding
+---@return Rectangle
+function Rectangle:WithOuterPadding(padding)
+  local appliedPadding = self:ParsePadding(padding)
+  local posOffset = XYPoint:new(-appliedPadding.left, -appliedPadding.top)
+  local sizeOffset = XYPoint:new(appliedPadding.left + appliedPadding.right, appliedPadding.top + appliedPadding.bottom)
+  return Rectangle:new(self.Position + posOffset, self.Size + sizeOffset)
 end
 
 
