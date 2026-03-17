@@ -17,6 +17,14 @@ function XYPoint:new(x, y)
   return obj
 end
 
+--- Checks if the given object is an instance of the XYPoint class.
+---@param obj any
+---@return boolean
+function XYPoint:IsInstance(obj)
+  if type(obj) ~= "table" then return false end
+  return getmetatable(obj) == XYPoint
+end
+
 function XYPoint:X()
   return self.x
 end
@@ -34,6 +42,14 @@ end
 function XYPoint:AsArray()
   return { self.x, self.y }
 end
+
+---@param other any
+---@return boolean
+function XYPoint:Equals(other)
+  if not XYPoint:IsInstance(other) then return false end
+  return self.x == other:X() and self.y == other:Y()
+end
+XYPoint.__eq = XYPoint.Equals
 
 ---@param other XYPoint|number
 ---@return XYPoint
@@ -97,6 +113,8 @@ end
 XYPoint.__div = XYPoint.Divide
 
 
+---@alias PaddingTable {top?: number, right?: number, bottom?: number, left?: number}
+---@alias Padding PaddingTable|number|XYPoint
 
 
 ---@class Rectangle
@@ -116,6 +134,16 @@ function Rectangle:new(position, size)
   self.__index = self
   return obj
 end
+
+
+--- Checks if the given object is an instance of the Rectangle class.
+---@param obj any
+---@return boolean
+function Rectangle:IsInstance(obj)
+  if type(obj) ~= "table" then return false end
+  return getmetatable(obj) == Rectangle
+end
+
 
 ---@param centerPos XYPoint
 ---@param size XYPoint
@@ -141,6 +169,57 @@ function Rectangle.FromBounds(leftTop, rightBottom)
   local position = leftTop
   local size = rightBottom - leftTop
   return Rectangle:new(position, size)
+end
+
+
+---@param padding Padding
+---@return PaddingTable
+function Rectangle.ParsePadding(padding)
+  ---@type PaddingTable
+  local appliedPadding = {
+    top = 0,
+    right = 0,
+    bottom = 0,
+    left = 0,
+  }
+  if type(padding) == "number" then
+    appliedPadding.top = padding
+    appliedPadding.right = padding
+    appliedPadding.bottom = padding
+    appliedPadding.left = padding
+  elseif XYPoint:IsInstance(padding) then
+    ---@cast padding XYPoint
+    appliedPadding.top = padding:Y()
+    appliedPadding.right = padding:X()
+    appliedPadding.bottom = padding:Y()
+    appliedPadding.left = padding:X()
+  elseif type(padding) == "table" then
+    appliedPadding.top = padding.top or 0
+    appliedPadding.right = padding.right or 0
+    appliedPadding.bottom = padding.bottom or 0
+    appliedPadding.left = padding.left or 0
+  else
+    error("Invalid padding value")
+  end
+  return appliedPadding
+end
+
+---@param padding Padding
+---@return Rectangle
+function Rectangle:WithInnerPadding(padding)
+  local appliedPadding = self.ParsePadding(padding)
+  local posOffset = XYPoint:new(appliedPadding.left, appliedPadding.top)
+  local sizeOffset = XYPoint:new(appliedPadding.left + appliedPadding.right, appliedPadding.top + appliedPadding.bottom)
+  return Rectangle:new(self.Position + posOffset, self.Size - sizeOffset)
+end
+
+---@param padding Padding
+---@return Rectangle
+function Rectangle:WithOuterPadding(padding)
+  local appliedPadding = self.ParsePadding(padding)
+  local posOffset = XYPoint:new(-appliedPadding.left, -appliedPadding.top)
+  local sizeOffset = XYPoint:new(appliedPadding.left + appliedPadding.right, appliedPadding.top + appliedPadding.bottom)
+  return Rectangle:new(self.Position + posOffset, self.Size + sizeOffset)
 end
 
 
@@ -202,6 +281,14 @@ function Rectangle:CenterY()
   return self.Position:Y() + (self:Height() / 2)
 end
 
+---@param other any
+---@return boolean
+function Rectangle:Equals(other)
+  if not Rectangle:IsInstance(other) then return false end
+  return self.Position:Equals(other.Position) and self.Size:Equals(other.Size)
+end
+Rectangle.__eq = Rectangle.Equals
+
 ---@param other XYPoint
 ---@return Rectangle
 function Rectangle:Add(other)
@@ -223,10 +310,17 @@ Rectangle.__sub = Rectangle.Subtract
 ---@alias RectangleGrid Rectangle[][]
 
 ---@param xyCount XYPoint
+---@param spacing? XYPoint optional spacing between the rectangles in the grid
 ---@return Rectangle[][] grid of rectangles dividing the original rectangle into equal parts.  The shape of the array will be (rows, columns) based on the y and x values of xyCount respectively.
-function Rectangle:Divide(xyCount)
+function Rectangle:Divide(xyCount, spacing)
   local cellSize = self.Size / xyCount
-
+  if spacing then
+    local totalSpacing = spacing * (xyCount - XYPoint:new(1, 1))
+    cellSize = (self.Size - totalSpacing) / xyCount
+    if cellSize:X() <= 0 or cellSize:Y() <= 0 then
+      error("Spacing is too large for the given rectangle and xyCount")
+    end
+  end
   ---@type Rectangle[][]
   local cellRows = {}
   for row = 1, xyCount:Y() do
@@ -234,6 +328,9 @@ function Rectangle:Divide(xyCount)
     local cellRow = {}
     for column = 1, xyCount:X() do
       local cellPosition = self.Position + (cellSize * XYPoint:new(column - 1, row - 1))
+      if spacing then
+        cellPosition = cellPosition + (spacing * XYPoint:new(column - 1, row - 1))
+      end
       table.insert(cellRow, Rectangle:new(cellPosition, cellSize))
     end
     table.insert(cellRows, cellRow)
@@ -245,9 +342,10 @@ Rectangle.__div = Rectangle.Divide
 
 --- Subdivide the rectangle into `count` rows (across the y-axis)
 ---@param count integer
+---@param spacing? XYPoint optional spacing between the rectangles in the grid
 ---@return Rectangle[]
-function Rectangle:MakeRows(count)
-  local cells = self:Divide(XYPoint:new(1, count))
+function Rectangle:MakeRows(count, spacing)
+  local cells = self:Divide(XYPoint:new(1, count), spacing)
   -- Extract the first column from each row to get a single array of rectangles
   local columnCells = {}
   for _, row in ipairs(cells) do
@@ -258,9 +356,10 @@ end
 
 --- Subdivide the rectangle into `count` columns (across the x-axis)
 ---@param count integer
+---@param spacing? XYPoint optional spacing between the rectangles in the grid
 ---@return Rectangle[]
-function Rectangle:MakeColumns(count)
-  local cells = self:Divide(XYPoint:new(count, 1))
+function Rectangle:MakeColumns(count, spacing)
+  local cells = self:Divide(XYPoint:new(count, 1), spacing)
   return cells[1]
 end
 

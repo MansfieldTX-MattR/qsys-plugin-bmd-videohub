@@ -1,7 +1,18 @@
 require("telescope")
+local telescope = require("telescope")
 
 ---@module "geometry"
 local geometry = require "lib.geometry"
+
+
+---@param expected number
+---@param actual number
+local function isClose(expected, actual)
+  local tol = 1e-9
+  return math.abs(expected - actual) <= tol
+end
+
+telescope.make_assertion("close", "'%s' to be close to '%s'", isClose)
 
 context("geometry", function()
   context("XYPoint", function()
@@ -9,6 +20,23 @@ context("geometry", function()
       local point = geometry.XYPoint:new(10, 20)
       assert_equal(10, point:X())
       assert_equal(20, point:Y())
+    end)
+    test("should be able to check instances of a point", function()
+      local point = geometry.XYPoint:new(10, 20)
+      assert_true(geometry.XYPoint:IsInstance(point))
+      assert_false(geometry.XYPoint:IsInstance({}))
+      assert_false(geometry.XYPoint:IsInstance(geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40))))
+    end)
+    test("should be able to test equality of points", function()
+      local point1 = geometry.XYPoint:new(10, 20)
+      local point2 = geometry.XYPoint:new(10, 20)
+      local point3 = geometry.XYPoint:new(5, 15)
+      assert_true(point1 == point1)
+      assert_true(point1 == point2)
+      assert_false(point1 == point3)
+      assert_false(point1 == {})
+      assert_false(point1 == geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40)))
+      assert_false(point1 == {x = 10, y = 20})
     end)
     test("should be able to convert a point to an array", function()
       local point = geometry.XYPoint:new(10, 20)
@@ -83,6 +111,22 @@ context("geometry", function()
       assert_equal(30, rect:Width())
       assert_equal(40, rect:Height())
     end)
+    test("should be able to check instances of a rectangle", function()
+      local rect = geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40))
+      assert_true(geometry.Rectangle:IsInstance(rect))
+      assert_false(geometry.Rectangle:IsInstance({}))
+      assert_false(geometry.Rectangle:IsInstance(geometry.XYPoint:new(10, 20)))
+    end)
+    test("should be able to test equality of rectangles", function()
+      local rect1 = geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40))
+      local rect2 = geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40))
+      local rect3 = geometry.Rectangle:new(geometry.XYPoint:new(5, 15), geometry.XYPoint:new(25, 35))
+      assert_true(rect1 == rect1)
+      assert_true(rect1 == rect2)
+      assert_false(rect1 == rect3)
+      assert_false(rect1 == {})
+      assert_false(rect1 == geometry.XYPoint:new(10, 20))
+    end)
     test("should be able to get the right and bottom edges of a rectangle", function()
       local rect = geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40))
       assert_equal(40, rect:Right())
@@ -152,6 +196,93 @@ context("geometry", function()
       assert_equal(30, rect:Width())
       assert_equal(40, rect:Height())
     end)
+    context("Pad Parsing", function()
+      test("should be able to parse a padding table from a scalar", function()
+        local padding = geometry.Rectangle.ParsePadding(5)
+        assert_equal(5, padding.left)
+        assert_equal(5, padding.top)
+        assert_equal(5, padding.right)
+        assert_equal(5, padding.bottom)
+      end)
+      test("should be able to parse a padding table from a point", function()
+        local padding = geometry.Rectangle.ParsePadding(geometry.XYPoint:new(5, 10))
+        assert_equal(5, padding.left)
+        assert_equal(10, padding.top)
+        assert_equal(5, padding.right)
+        assert_equal(10, padding.bottom)
+      end)
+      test("should be able to parse a padding table from a table of padding values", function()
+        local paddingTable = { left = 5, top = 10, right = 15, bottom = 20 }
+        local padding = geometry.Rectangle.ParsePadding(paddingTable)
+        assert_equal(5, padding.left)
+        assert_equal(10, padding.top)
+        assert_equal(15, padding.right)
+        assert_equal(20, padding.bottom)
+      end)
+    end)
+    context("Inner Padding", function()
+      test("should be able to inner-pad a rectangle from a scalar", function()
+        local rect = geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40))
+        local padAmount = 5
+        local paddedRect = rect:WithInnerPadding(padAmount)
+        local expected = geometry.Rectangle.FromBounds(
+          rect:TopLeft() + geometry.XYPoint:new(padAmount, padAmount),
+          rect:BottomRight() - geometry.XYPoint:new(padAmount, padAmount)
+        )
+        assert_equal(expected, paddedRect)
+      end)
+      test("should be able to inner-pad a rectangle from a point", function()
+        local rect = geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40))
+        local paddingPoint = geometry.XYPoint:new(5, 10)
+        local paddedRect = rect:WithInnerPadding(paddingPoint)
+        local expected = geometry.Rectangle.FromBounds(
+          rect:TopLeft() + paddingPoint,
+          rect:BottomRight() - paddingPoint
+        )
+        assert_equal(expected, paddedRect)
+      end)
+      test("should be able to inner-pad a rectangle from a table of padding values", function()
+        local rect = geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40))
+        local paddingTable = { left = 5, top = 10, right = 5, bottom = 10 }
+        local paddedRect = rect:WithInnerPadding(paddingTable)
+        local expected = geometry.Rectangle.FromBounds(
+          rect:TopLeft() + geometry.XYPoint:new(paddingTable.left, paddingTable.top),
+          rect:BottomRight() - geometry.XYPoint:new(paddingTable.right, paddingTable.bottom)
+        )
+        assert_equal(expected, paddedRect)
+      end)
+    end)
+    context("Outer Padding", function()
+      test("should be able to outer-pad a rectangle from a scalar", function()
+        local rect = geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40))
+        local paddedRect = rect:WithOuterPadding(5)
+        local expected = geometry.Rectangle.FromBounds(
+          rect:TopLeft() - geometry.XYPoint:new(5, 5),
+          rect:BottomRight() + geometry.XYPoint:new(5, 5)
+        )
+        assert_equal(expected, paddedRect)
+      end)
+      test("should be able to outer-pad a rectangle from a point", function()
+        local rect = geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40))
+        local padPoint = geometry.XYPoint:new(5, 10)
+        local paddedRect = rect:WithOuterPadding(padPoint)
+        local expected = geometry.Rectangle.FromBounds(
+          rect:TopLeft() - padPoint,
+          rect:BottomRight() + padPoint
+        )
+        assert_equal(expected, paddedRect)
+      end)
+      test("should be able to outer-pad a rectangle from a table of padding values", function()
+        local rect = geometry.Rectangle:new(geometry.XYPoint:new(10, 20), geometry.XYPoint:new(30, 40))
+        local paddingTable = { left = 5, top = 10, right = 5, bottom = 10 }
+        local paddedRect = rect:WithOuterPadding(paddingTable)
+        local expected = geometry.Rectangle.FromBounds(
+          rect:TopLeft() - geometry.XYPoint:new(paddingTable.left, paddingTable.top),
+          rect:BottomRight() + geometry.XYPoint:new(paddingTable.right, paddingTable.bottom)
+        )
+        assert_equal(expected, paddedRect)
+      end)
+    end)
     test("should be able to divide a rectangle into a grid of cells", function()
       local rect = geometry.Rectangle:new(geometry.XYPoint:new(1, 2), geometry.XYPoint:new(100, 100))
       local cells = rect:Divide(geometry.XYPoint:new(10, 20))
@@ -167,6 +298,27 @@ context("geometry", function()
           assert_equal(expectedHeight, cell:Height())
           assert_equal(1 + (j - 1) * expectedWidth, cell:Left())
           assert_equal(2 + (i - 1) * expectedHeight, cell:Top())
+        end
+      end
+    end)
+    test("should be able to divide a rectangle into a grid of cells with spacing", function()
+      local rect = geometry.Rectangle:new(geometry.XYPoint:new(1, 2), geometry.XYPoint:new(100, 100))
+      local spacing = geometry.XYPoint:new(2, 4)
+      local xyCount = geometry.XYPoint:new(10, 20)
+      local cells = rect:Divide(xyCount, spacing)
+      local expectedWidth = (100 - (spacing:X() * (xyCount:X() - 1))) / xyCount:X()
+      local expectedHeight = (100 - (spacing:Y() * (xyCount:Y() - 1))) / xyCount:Y()
+      assert_equal(20, #cells)
+      assert_equal(10, #cells[1])
+      for i, row in ipairs(cells) do
+        assert_equal(10, #row)
+        for j, cell in ipairs(row) do
+          assert_equal(expectedWidth, cell:Width())
+          assert_equal(expectedHeight, cell:Height())
+
+          -- Use assert_close for the positions to avoid floating point precision issues
+          assert_close(1 + (j - 1) * (expectedWidth + spacing:X()), cell:Left())
+          assert_close(2 + (i - 1) * (expectedHeight + spacing:Y()), cell:Top())
         end
       end
     end)
