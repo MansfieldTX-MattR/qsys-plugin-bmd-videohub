@@ -17,6 +17,14 @@ function XYPoint:new(x, y)
   return obj
 end
 
+--- Checks if the given object is an instance of the XYPoint class.
+---@param obj any
+---@return boolean
+function XYPoint:IsInstance(obj)
+  if type(obj) ~= "table" then return false end
+  return getmetatable(obj) == XYPoint
+end
+
 function XYPoint:X()
   return self.x
 end
@@ -34,6 +42,14 @@ end
 function XYPoint:AsArray()
   return { self.x, self.y }
 end
+
+---@param other any
+---@return boolean
+function XYPoint:Equals(other)
+  if not XYPoint:IsInstance(other) then return false end
+  return self.x == other:X() and self.y == other:Y()
+end
+XYPoint.__eq = XYPoint.Equals
 
 ---@param other XYPoint|number
 ---@return XYPoint
@@ -116,6 +132,16 @@ function Rectangle:new(position, size)
   self.__index = self
   return obj
 end
+
+
+--- Checks if the given object is an instance of the Rectangle class.
+---@param obj any
+---@return boolean
+function Rectangle:IsInstance(obj)
+  if type(obj) ~= "table" then return false end
+  return getmetatable(obj) == Rectangle
+end
+
 
 ---@param centerPos XYPoint
 ---@param size XYPoint
@@ -201,6 +227,14 @@ end
 function Rectangle:CenterY()
   return self.Position:Y() + (self:Height() / 2)
 end
+
+---@param other any
+---@return boolean
+function Rectangle:Equals(other)
+  if not Rectangle:IsInstance(other) then return false end
+  return self.Position:Equals(other.Position) and self.Size:Equals(other.Size)
+end
+Rectangle.__eq = Rectangle.Equals
 
 ---@param other XYPoint
 ---@return Rectangle
