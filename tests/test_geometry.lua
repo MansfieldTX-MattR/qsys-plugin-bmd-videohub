@@ -1,7 +1,18 @@
 require("telescope")
+local telescope = require("telescope")
 
 ---@module "geometry"
 local geometry = require "lib.geometry"
+
+
+---@param expected number
+---@param actual number
+local function isClose(expected, actual)
+  local tol = 1e-9
+  return math.abs(expected - actual) <= tol
+end
+
+telescope.make_assertion("close", "'%s' to be close to '%s'", isClose)
 
 context("geometry", function()
   context("XYPoint", function()
@@ -304,8 +315,10 @@ context("geometry", function()
         for j, cell in ipairs(row) do
           assert_equal(expectedWidth, cell:Width())
           assert_equal(expectedHeight, cell:Height())
-          assert_equal(1 + (j - 1) * (expectedWidth + spacing:X()), cell:Left())
-          assert_equal(2 + (i - 1) * (expectedHeight + spacing:Y()), cell:Top())
+
+          -- Use assert_close for the positions to avoid floating point precision issues
+          assert_close(1 + (j - 1) * (expectedWidth + spacing:X()), cell:Left())
+          assert_close(2 + (i - 1) * (expectedHeight + spacing:Y()), cell:Top())
         end
       end
     end)
