@@ -310,10 +310,14 @@ Rectangle.__sub = Rectangle.Subtract
 ---@alias RectangleGrid Rectangle[][]
 
 ---@param xyCount XYPoint
+---@param spacing? XYPoint optional spacing between the rectangles in the grid
 ---@return Rectangle[][] grid of rectangles dividing the original rectangle into equal parts.  The shape of the array will be (rows, columns) based on the y and x values of xyCount respectively.
-function Rectangle:Divide(xyCount)
+function Rectangle:Divide(xyCount, spacing)
   local cellSize = self.Size / xyCount
-
+  if spacing then
+    local totalSpacing = spacing * (xyCount - XYPoint:new(1, 1))
+    cellSize = (self.Size - totalSpacing) / xyCount
+  end
   ---@type Rectangle[][]
   local cellRows = {}
   for row = 1, xyCount:Y() do
@@ -321,6 +325,9 @@ function Rectangle:Divide(xyCount)
     local cellRow = {}
     for column = 1, xyCount:X() do
       local cellPosition = self.Position + (cellSize * XYPoint:new(column - 1, row - 1))
+      if spacing then
+        cellPosition = cellPosition + (spacing * XYPoint:new(column - 1, row - 1))
+      end
       table.insert(cellRow, Rectangle:new(cellPosition, cellSize))
     end
     table.insert(cellRows, cellRow)
@@ -332,9 +339,10 @@ Rectangle.__div = Rectangle.Divide
 
 --- Subdivide the rectangle into `count` rows (across the y-axis)
 ---@param count integer
+---@param spacing? XYPoint optional spacing between the rectangles in the grid
 ---@return Rectangle[]
-function Rectangle:MakeRows(count)
-  local cells = self:Divide(XYPoint:new(1, count))
+function Rectangle:MakeRows(count, spacing)
+  local cells = self:Divide(XYPoint:new(1, count), spacing)
   -- Extract the first column from each row to get a single array of rectangles
   local columnCells = {}
   for _, row in ipairs(cells) do
@@ -345,9 +353,10 @@ end
 
 --- Subdivide the rectangle into `count` columns (across the x-axis)
 ---@param count integer
+---@param spacing? XYPoint optional spacing between the rectangles in the grid
 ---@return Rectangle[]
-function Rectangle:MakeColumns(count)
-  local cells = self:Divide(XYPoint:new(count, 1))
+function Rectangle:MakeColumns(count, spacing)
+  local cells = self:Divide(XYPoint:new(count, 1), spacing)
   return cells[1]
 end
 

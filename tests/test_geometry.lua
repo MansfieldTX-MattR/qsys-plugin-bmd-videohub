@@ -290,6 +290,25 @@ context("geometry", function()
         end
       end
     end)
+    test("should be able to divide a rectangle into a grid of cells with spacing", function()
+      local rect = geometry.Rectangle:new(geometry.XYPoint:new(1, 2), geometry.XYPoint:new(100, 100))
+      local spacing = geometry.XYPoint:new(2, 4)
+      local xyCount = geometry.XYPoint:new(10, 20)
+      local cells = rect:Divide(xyCount, spacing)
+      local expectedWidth = (100 - (spacing:X() * (xyCount:X() - 1))) / xyCount:X()
+      local expectedHeight = (100 - (spacing:Y() * (xyCount:Y() - 1))) / xyCount:Y()
+      assert_equal(20, #cells)
+      assert_equal(10, #cells[1])
+      for i, row in ipairs(cells) do
+        assert_equal(10, #row)
+        for j, cell in ipairs(row) do
+          assert_equal(expectedWidth, cell:Width())
+          assert_equal(expectedHeight, cell:Height())
+          assert_equal(1 + (j - 1) * (expectedWidth + spacing:X()), cell:Left())
+          assert_equal(2 + (i - 1) * (expectedHeight + spacing:Y()), cell:Top())
+        end
+      end
+    end)
     test("should be able to divide a rectangle into an array of rows", function()
       local rect = geometry.Rectangle:new(geometry.XYPoint:new(1, 2), geometry.XYPoint:new(100, 100))
       local cells = rect:MakeRows(10)
