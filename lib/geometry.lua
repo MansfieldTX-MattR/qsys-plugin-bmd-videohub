@@ -342,10 +342,14 @@ Rectangle.__div = Rectangle.Divide
 
 --- Subdivide the rectangle into `count` rows (across the y-axis)
 ---@param count integer
----@param spacing? XYPoint optional spacing between the rectangles in the grid
+---@param spacing? number optional vertical spacing between the rectangles
 ---@return Rectangle[]
 function Rectangle:MakeRows(count, spacing)
-  local cells = self:Divide(XYPoint:new(1, count), spacing)
+  local spacingXY = nil
+  if spacing then
+    spacingXY = XYPoint:new(0, spacing)
+  end
+  local cells = self:Divide(XYPoint:new(1, count), spacingXY)
   -- Extract the first column from each row to get a single array of rectangles
   local columnCells = {}
   for _, row in ipairs(cells) do
@@ -356,10 +360,14 @@ end
 
 --- Subdivide the rectangle into `count` columns (across the x-axis)
 ---@param count integer
----@param spacing? XYPoint optional spacing between the rectangles in the grid
+---@param spacing? number optional horizontal spacing between the rectangles
 ---@return Rectangle[]
 function Rectangle:MakeColumns(count, spacing)
-  local cells = self:Divide(XYPoint:new(count, 1), spacing)
+  local spacingXY = nil
+  if spacing then
+    spacingXY = XYPoint:new(spacing, 0)
+  end
+  local cells = self:Divide(XYPoint:new(count, 1), spacingXY)
   return cells[1]
 end
 

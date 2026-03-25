@@ -333,6 +333,20 @@ context("geometry", function()
         assert_equal(10, cell:Height())
       end
     end)
+    test("should be able to divide a rectangle into an array of rows with spacing", function()
+      local rect = geometry.Rectangle:new(geometry.XYPoint:new(1, 2), geometry.XYPoint:new(100, 100))
+      local numDivisions = 10
+      local spacing = 2
+      local cellHeight = (100 - (spacing * (numDivisions - 1))) / numDivisions
+      local cells = rect:MakeRows(numDivisions, spacing)
+      assert_equal(numDivisions, #cells)
+      for i, cell in ipairs(cells) do
+        assert_equal(1, cell:Left())
+        assert_equal(2 + (i - 1) * (cellHeight + spacing), cell:Top())
+        assert_equal(100, cell:Width())
+        assert_equal(cellHeight, cell:Height())
+      end
+    end)
     test("should be able to divide a rectangle into an array of columns", function()
       local rect = geometry.Rectangle:new(geometry.XYPoint:new(1, 2), geometry.XYPoint:new(100, 100))
       local cells = rect:MakeColumns(10)
@@ -341,6 +355,20 @@ context("geometry", function()
         assert_equal(1 + (i - 1) * 10, cell:Left())
         assert_equal(2, cell:Top())
         assert_equal(10, cell:Width())
+        assert_equal(100, cell:Height())
+      end
+    end)
+    test("should be able to divide a rectangle into an array of columns with spacing", function()
+      local rect = geometry.Rectangle:new(geometry.XYPoint:new(1, 2), geometry.XYPoint:new(100, 100))
+      local numCols = 10
+      local spacing = 2
+      local cellWidth = (100 - (spacing * (numCols - 1))) / numCols
+      local cells = rect:MakeColumns(numCols, spacing)
+      assert_equal(numCols, #cells)
+      for i, cell in ipairs(cells) do
+        assert_equal(1 + (i - 1) * (cellWidth + spacing), cell:Left())
+        assert_equal(2, cell:Top())
+        assert_equal(cellWidth, cell:Width())
         assert_equal(100, cell:Height())
       end
     end)
