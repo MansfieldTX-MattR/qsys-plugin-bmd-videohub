@@ -119,24 +119,26 @@ function GetControlLayout(props)
   end
 
   ---@param labelType "Input" | "Output"
-  function BuildLabelPage(labelType)
+  ---@param xOffset number
+  ---@return Rectangle
+  function BuildLabelPage(labelType, xOffset)
     local count = maxCounts[labelType]
-    local numRows = 1
-    local countPerRow = count
-    local maxOuterWidth = 1200
+    local numCols = 1
+    local countPerColumn = count
+    local maxOuterHeight = 800
     local textFieldSize = XYPoint:new(72, 16)
-    local textFieldLabelSize = XYPoint:new(64, 16)
-    local rowGap = 4
-    local rowWidth = textFieldSize:X() * count
-    if rowWidth > maxOuterWidth then
-      -- Find a count per row that fits inside the maxOuterWidth and fills all rows with an equal number of labels
+    local textFieldLabelSize = XYPoint:new(40, 16)
+    local totalFieldSize = XYPoint:new(textFieldLabelSize:X() + textFieldSize:X(), textFieldSize:Y())
+    local colHeight = totalFieldSize:Y() * countPerColumn
+    if colHeight > maxOuterHeight then
+      -- Find a count per column that fits inside the maxOuterHeight and results in enough columns to fit all labels
       local numIters = 0
       while 1 do
         numIters = numIters + 1
-        numRows = numRows + 1
-        countPerRow = math.floor(count / numRows)
-        rowWidth = textFieldSize:X() * countPerRow
-        if countPerRow % numRows == 0 and rowWidth <= maxOuterWidth then
+        numCols = numCols + 1
+        countPerColumn = math.floor(count / numCols)
+        colHeight = totalFieldSize:Y() * countPerColumn
+        if countPerColumn * numCols >= count and colHeight <= maxOuterHeight then
           break
         end
         if numIters > 100 then
@@ -146,34 +148,51 @@ function GetControlLayout(props)
     end
 
     local rowRect = Rectangle:new(
-      XYPoint:new(0, 12),
-      XYPoint:new(rowWidth, (textFieldSize:Y() + textFieldLabelSize:Y()))
+      XYPoint:new(xOffset + 4, 20),
+      XYPoint:new(
+        totalFieldSize:X() * numCols,
+        colHeight
+      )
     )
+    local groupBoxRect = rowRect:WithOuterPadding({
+      left = 4,
+      top = 20,
+      right = 4,
+      bottom = 4,
+    })
 
-    for rowIndex = 1, numRows do
-      local rowCells = rowRect:MakeColumns(countPerRow)
-      if #rowCells ~= countPerRow then
-        error(string.format("Expected %i cells in row, got %i", countPerRow, #rowCells))
-      end
-      for columnIndex, cellRect in ipairs(rowCells) do
-        local labelIndex = ((rowIndex - 1) * countPerRow) + columnIndex
+    local groupBox = CreateGroupBox(labelType, groupBoxRect, "Top", {
+      Color = {0, 0, 0},
+      StrokeWidth = 1,
+      CornerRadius = 8
+    })
+    table.insert(graphics, groupBox)
+    local colRects = rowRect:MakeColumns(numCols)
+    for columnIndex, colRect in ipairs(colRects) do
+      local rowCells = colRect:MakeRows(countPerColumn)
+      for rowIndex, cellRect in ipairs(rowCells) do
+        local labelIndex = ((columnIndex - 1) * countPerColumn) + rowIndex
         if labelIndex > count then break end
         local prettyName = string.format("%sLabels~%i", labelType, labelIndex)
-        local textFieldRect = Rectangle:new(cellRect.Position, textFieldSize)
-        local labelRect = Rectangle.FromBottomCenter(
-          cellRect:BottomCenter(), textFieldLabelSize
+        local labelRect = Rectangle:new(
+          cellRect.Position,
+          textFieldLabelSize
         )
+        local textFieldRect = Rectangle:new(labelRect:TopRight(), textFieldSize)
+        labelRect = labelRect:WithInnerPadding({ right = 4 })
         layout[string.format("%sLabels %i", labelType, labelIndex)] = CreateTextInput(textFieldRect, prettyName)
-        local label = CreateLabel(tostring(labelIndex), labelRect)
+        local label = CreateLabel(tostring(labelIndex), labelRect, {
+          HTextAlign = "Right",
+          VTextAlign = "Center",
+        })
         table.insert(graphics, label)
       end
-      rowRect = rowRect + XYPoint:new(0, rowRect:Height() + rowGap)
     end
+    return groupBoxRect
   end
-  if CurrentPage == "Input Labels" then
-    BuildLabelPage("Input")
-  elseif CurrentPage == "Output Labels" then
-    BuildLabelPage("Output")
+  if CurrentPage == "Labels" then
+    local inputRect = BuildLabelPage("Input", 0)
+    BuildLabelPage("Output", inputRect:Right() + 20)
   elseif CurrentPage == "Route" then
     local inputCount = maxCounts["Input"]
     local outputCount = maxCounts["Output"]

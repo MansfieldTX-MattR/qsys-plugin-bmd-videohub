@@ -1,4 +1,4 @@
-PageNames = {"Setup", "Input Labels", "Output Labels", "Route"}
+PageNames = {"Setup", "Labels", "Route"}
 
 ---@param props Properties
 ---@return {name: string}[]
