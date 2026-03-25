@@ -89,6 +89,29 @@ function CreateKnob(outerRect, size, prettyName, options)
   return o
 end
 
+---@param rect Rectangle
+---@param prettyName? string
+---@param options? LayoutItemOptions
+---@return LayoutComboBox
+function CreateComboBox(rect, prettyName, options)
+  options = options or {}
+  local o = {
+    Style = "ComboBox",
+    Position = rect.Position:AsArray(),
+    Size = rect.Size:AsArray(),
+    Color = {194, 194, 194},
+    StrokeColor = {105, 105, 105},
+    StrokeWidth = 1,
+  }
+  if prettyName then
+    o.PrettyName = prettyName
+  end
+  for k, v in pairs(options) do
+    o[k] = v
+  end
+  return o
+end
+
 
 ---@param props Properties
 ---@return table<string, DesignLayoutItem>
@@ -200,7 +223,92 @@ function GetControlLayout(props)
     if not showRoutingControls then
       return layout, graphics
     end
-    if selectionControlType == "Crosspoint Buttons" then
+    if selectionControlType == "Knobs" or selectionControlType == "Combo Boxes" then
+      local fieldSize = XYPoint:new(36, 36)
+      if selectionControlType == "Knobs" then
+        fieldSize = XYPoint:new(36, 36)
+      elseif selectionControlType == "Combo Boxes" then
+        fieldSize = XYPoint:new(36, 16)
+      end
+      local maxFieldsPerRow = 20
+      local fieldLabelSize = XYPoint:new(36, 16)
+      local fieldNumberLabelSize = XYPoint:new(36, 16)
+      local totalFieldSize = fieldSize + XYPoint:new(0, fieldLabelSize:Y()) + XYPoint:new(0, fieldNumberLabelSize:Y())
+      local fieldRects = {
+        ["Input Select"] = Rectangle:new(XYPoint:new(0, 0), fieldSize),
+        ["Output Label"] = Rectangle:new(XYPoint:new(0, fieldSize:Y()), fieldLabelSize),
+        ["Output #"] = Rectangle:new(XYPoint:new(0, fieldSize:Y() + fieldLabelSize:Y()), fieldNumberLabelSize),
+      }
+
+      local numRows = math.ceil(outputCount / maxFieldsPerRow)
+      local numCols = math.min(outputCount, maxFieldsPerRow)
+      local rowGap = 20
+      local controlsRect = Rectangle:new(
+        XYPoint:new(72, 20),
+        totalFieldSize * XYPoint:new(numCols, numRows) + XYPoint:new(0, (numRows - 1) * rowGap)
+      )
+      local leftLabelWidth = 64
+
+      ---@type table<string, Rectangle>
+      local leftLabelRects = {}
+      for key, fieldRect in pairs(fieldRects) do
+        leftLabelRects[key] = Rectangle:new(
+          XYPoint:new(0, fieldRect:Top()),
+          XYPoint:new(leftLabelWidth, fieldRect:Height())
+        )
+      end
+
+      local rowRects = controlsRect:MakeRows(numRows, rowGap)
+      for rowIndex, rowRect in ipairs(rowRects) do
+        for key, rect in pairs(leftLabelRects) do
+          local labelText = key
+          local label = CreateLabel(labelText, rect + XYPoint:new(0, rowRect:Top()), {
+            HTextAlign = "Right",
+            VTextAlign = "Center",
+          })
+          table.insert(graphics, label)
+        end
+        local groupBox = CreateGroupBox("", rowRect:WithOuterPadding(4), "Top", {
+          StrokeColor = {160, 160, 160},
+          StrokeWidth = 1,
+        })
+        table.insert(graphics, groupBox)
+
+        local colRects = rowRect:MakeColumns(numCols)
+        for colIndex, colRect in ipairs(colRects) do
+          local outputIndex = ((rowIndex - 1) * numCols) + colIndex
+          if outputIndex > outputCount then break end
+          local fieldRect = fieldRects["Input Select"] + colRect.Position
+          local numberLabelRect = fieldRects["Output #"] + colRect.Position
+          local textFieldRect = fieldRects["Output Label"] + colRect.Position
+          local textFieldPrettyName = string.format("OutputLabels~%i", outputIndex)
+          layout[string.format("OutputLabels %i", outputIndex)] = CreateTextInput(textFieldRect, textFieldPrettyName, {
+            FontSize = 9,
+            Color = {255, 255, 255, 0},
+            TextColor = {0, 0, 0},
+            StrokeColor = {105, 105, 105},
+            StrokeWidth = 1,
+            WordWrap = true,
+            TextBoxStyle = "Normal",
+          })
+          local prettyName = string.format("Crosspoints~%i", outputIndex)
+          --- NOTE: We're overwriting the "Crosspoints X" items built at the start of this function.
+          --- This is intentional so we don't have to alter runtime logic
+          local field
+          if selectionControlType == "Knobs" then
+            field = CreateKnob(fieldRect, fieldSize, prettyName)
+          elseif selectionControlType == "Combo Boxes" then
+            field = CreateComboBox(fieldRect, prettyName)
+          end
+          layout[string.format("Crosspoints %i", outputIndex)] = field
+          local numberLabel = CreateLabel(tostring(outputIndex), numberLabelRect, {
+            HTextAlign = "Center",
+            VTextAlign = "Bottom",
+          })
+          table.insert(graphics, numberLabel)
+        end
+      end
+    elseif selectionControlType == "Crosspoint Buttons" then
       local routeTableCellSize = XYPoint:new(36, 16)
       local inputLabelSize = XYPoint:new(64, 16)
       local inputLabelRightPadding = 4

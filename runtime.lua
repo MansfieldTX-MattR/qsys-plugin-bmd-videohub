@@ -744,7 +744,7 @@ VideoHubChangeEvents.Crosspoints:RegisterCallback(function()
       goto continue
     end
     CrosspointControls[i].Value = inputIndex
-    if ShowRoutingControls then
+    if ShowRoutingControls and RoutingControlType == "Crosspoint Buttons" then
       for j, buttonControl in ipairs(RouteMatrixButtons[i]) do
         if j > MaxInputCount then
           DebugPrint("Warning: received crosspoint for output index "..i.." input index "..j.." but no corresponding button control exists")
@@ -779,6 +779,20 @@ for i = 1, MaxOutputCount do
   CrosspointControls[i] = Controls.Crosspoints[i]
 end
 
+function SetCrosspointComboBoxChoices()
+  local choices = {}
+  for i = 1, VideoHub.Device.InputCount do
+    table.insert(choices, tostring(i))
+  end
+  for i, crosspoint in ipairs(CrosspointControls) do
+    crosspoint.Choices = choices
+  end
+end
+if ShowRoutingControls and RoutingControlType == "ComboBoxes" then
+  SetCrosspointComboBoxChoices()
+end
+
+
 function GatherRouteMatrixButtons()
   local btnIndex = 1
   for outputIndex = 1, MaxOutputCount do
@@ -790,7 +804,7 @@ function GatherRouteMatrixButtons()
     end
   end
 end
-if ShowRoutingControls then
+if ShowRoutingControls and RoutingControlType == "Crosspoint Buttons" then
   GatherRouteMatrixButtons()
 end
 
@@ -823,7 +837,7 @@ function SetupRouteMatrixButtonHandlers()
     ::continueOutput::
   end
 end
-if ShowRoutingControls then
+if ShowRoutingControls and RoutingControlType == "Crosspoint Buttons" then
   SetupRouteMatrixButtonHandlers()
 end
 

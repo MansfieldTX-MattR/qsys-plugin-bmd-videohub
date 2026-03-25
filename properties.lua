@@ -26,7 +26,7 @@ function GetProperties()
       Name = "Selection Controls",
       Type = "enum",
       Value = "Crosspoint Buttons",
-      Choices = {"Crosspoint Buttons"},
+      Choices = {"Crosspoint Buttons", "Knobs", "Combo Boxes"},
     },
     ---@type DesignPropertyBoolean
     ["Show Routing Controls"] = {
@@ -53,7 +53,7 @@ end
 ---@field ["Show Routing Controls"] TextControllerControls
 
 
----@alias SelectionControlType "Crosspoint Buttons"
+---@alias SelectionControlType "Crosspoint Buttons" | "Knobs" | "Combo Boxes"
 
 ---@param props Properties
 ---@return SelectionControlType
@@ -61,6 +61,10 @@ function GetSelectionControlType(props)
   local selectionControlValue = props["Selection Controls"].Value
   if selectionControlValue == "Crosspoint Buttons" then
     return "Crosspoint Buttons"
+  elseif selectionControlValue == "Knobs" then
+    return "Knobs"
+  elseif selectionControlValue == "Combo Boxes" then
+    return "Combo Boxes"
   else
     error("Invalid Selection Control Type: " .. tostring(selectionControlValue))
   end

@@ -130,6 +130,10 @@
 ---@field WordWrap? boolean
 
 
+---@class LayoutComboBox : LayoutBase
+---@field Style "ComboBox"
+
+
 
 ---@class LayoutGraphicsTable
 ---@field Position Point
@@ -212,6 +216,7 @@
 ---| LayoutFader
 ---| LayoutMeter
 ---| LayoutText
+---| LayoutComboBox
 ---| LayoutKnob
 
 ---@alias DesignGraphicsItem =
