@@ -258,7 +258,6 @@ function GetControlLayout(props)
     for i = 1, inputCount do
       local prettyName = string.format("InputLabels~%i", i)
       layout["InputLabels " .. i] = CreateTextInput(inputLabelCells[i], prettyName, {
-        IsReadOnly = true,
         FontSize = 9,
         Color = {255, 255, 255, 0},
         TextColor = {0, 0, 0},
@@ -278,7 +277,6 @@ function GetControlLayout(props)
       table.insert(graphics, numberLabel)
       local prettyName = string.format("OutputLabels~%i", i)
       layout["OutputLabels " .. i] = CreateTextInput(outputLabelCells[i], prettyName, {
-        IsReadOnly = true,
         FontSize = 9,
         Color = {255, 255, 255, 0},
         TextColor = {0, 0, 0},
