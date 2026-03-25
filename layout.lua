@@ -105,6 +105,7 @@ function GetControlLayout(props)
     Output = props["Max Output Count"].Value or 12,
   }
   local showRoutingControls = props["Show Routing Controls"].Value
+  local selectionControlType = GetSelectionControlType(props)
 
   local CurrentPage = PageNames[props["page_index"].Value]
 
@@ -199,107 +200,109 @@ function GetControlLayout(props)
     if not showRoutingControls then
       return layout, graphics
     end
-    local routeTableCellSize = XYPoint:new(36, 16)
-    local inputLabelSize = XYPoint:new(64, 16)
-    local inputLabelRightPadding = 4
-    local outputNumberLabelSize = XYPoint:new(36, 16)
-    local outputLabelSize = XYPoint:new(36, 32)
-    local upperRowYSpacing = 20
+    if selectionControlType == "Crosspoint Buttons" then
+      local routeTableCellSize = XYPoint:new(36, 16)
+      local inputLabelSize = XYPoint:new(64, 16)
+      local inputLabelRightPadding = 4
+      local outputNumberLabelSize = XYPoint:new(36, 16)
+      local outputLabelSize = XYPoint:new(36, 32)
+      local upperRowYSpacing = 20
 
-    local inputLabelOuterWidth = inputLabelSize:X() + inputLabelRightPadding * 2
-    local routeTableOuterX = inputLabelOuterWidth + inputLabelRightPadding
-    local routeTableInnerX = routeTableOuterX + inputLabelRightPadding
+      local inputLabelOuterWidth = inputLabelSize:X() + inputLabelRightPadding * 2
+      local routeTableOuterX = inputLabelOuterWidth + inputLabelRightPadding
+      local routeTableInnerX = routeTableOuterX + inputLabelRightPadding
 
-    local outputNumberLabelRowRect = Rectangle:new(
-    XYPoint:new(routeTableInnerX, upperRowYSpacing),
-      XYPoint:new(outputNumberLabelSize:X() * outputCount, outputNumberLabelSize:Y())
-    )
-    local outputNumberLabelCells = outputNumberLabelRowRect:MakeColumns(outputCount)
-    local outputLabelRowRect = Rectangle:new(
-      outputNumberLabelRowRect:BottomLeft() + XYPoint:new(0, upperRowYSpacing),
-      XYPoint:new(outputNumberLabelRowRect:Width(), outputLabelSize:Y())
-    )
-    local outputLabelCells = outputLabelRowRect:MakeColumns(outputCount)
-    local routeTableRect = Rectangle:new(
-      outputLabelRowRect:BottomLeft() + XYPoint:new(0, upperRowYSpacing),
-      routeTableCellSize * XYPoint:new(outputCount, inputCount)
-    )
-    local routeTableCells = routeTableRect / (XYPoint:new(outputCount, inputCount))
-    local routeTableGroupBoxRect = Rectangle.FromBounds(
-      XYPoint:new(routeTableOuterX, 0),
-      routeTableRect:BottomRight() + XYPoint:new(inputLabelRightPadding, inputLabelRightPadding)
-    )
-    local routeTableGroupBox = CreateGroupBox("Output", routeTableGroupBoxRect, "Top", {
-      Color = {0, 0, 0},
-      StrokeWidth = 1,
-      CornerRadius = 8
-    })
-    table.insert(graphics, routeTableGroupBox)
-
-    local inputLabelRect = Rectangle:new(
-      XYPoint:new(inputLabelRightPadding, routeTableRect:Top()),
-      inputLabelSize * XYPoint:new(1, inputCount)
-    )
-    local inputLabelCells = inputLabelRect:MakeRows(inputCount)
-    local inputLabelGroupBoxRect = Rectangle.FromBounds(
-      XYPoint:new(0, inputLabelRect:Top() - upperRowYSpacing),
-      XYPoint:new(
-        inputLabelRect:Right() + inputLabelRightPadding,
-        inputLabelRect:Top() + inputLabelRect:Height() + inputLabelRightPadding
+      local outputNumberLabelRowRect = Rectangle:new(
+      XYPoint:new(routeTableInnerX, upperRowYSpacing),
+        XYPoint:new(outputNumberLabelSize:X() * outputCount, outputNumberLabelSize:Y())
       )
-    )
-    table.insert(graphics, CreateGroupBox("Input", inputLabelGroupBoxRect, "Top"))
-
-    local inputNumberRect = Rectangle:new(
-      XYPoint:new(routeTableRect:Right() + inputLabelRightPadding, routeTableRect:Top()),
-      routeTableCellSize
-    )
-
-    for i = 1, inputCount do
-      local prettyName = string.format("InputLabels~%i", i)
-      layout["InputLabels " .. i] = CreateTextInput(inputLabelCells[i], prettyName, {
-        FontSize = 9,
-        Color = {255, 255, 255, 0},
-        TextColor = {0, 0, 0},
-        StrokeColor = {105, 105, 105},
+      local outputNumberLabelCells = outputNumberLabelRowRect:MakeColumns(outputCount)
+      local outputLabelRowRect = Rectangle:new(
+        outputNumberLabelRowRect:BottomLeft() + XYPoint:new(0, upperRowYSpacing),
+        XYPoint:new(outputNumberLabelRowRect:Width(), outputLabelSize:Y())
+      )
+      local outputLabelCells = outputLabelRowRect:MakeColumns(outputCount)
+      local routeTableRect = Rectangle:new(
+        outputLabelRowRect:BottomLeft() + XYPoint:new(0, upperRowYSpacing),
+        routeTableCellSize * XYPoint:new(outputCount, inputCount)
+      )
+      local routeTableCells = routeTableRect / (XYPoint:new(outputCount, inputCount))
+      local routeTableGroupBoxRect = Rectangle.FromBounds(
+        XYPoint:new(routeTableOuterX, 0),
+        routeTableRect:BottomRight() + XYPoint:new(inputLabelRightPadding, inputLabelRightPadding)
+      )
+      local routeTableGroupBox = CreateGroupBox("Output", routeTableGroupBoxRect, "Top", {
+        Color = {0, 0, 0},
         StrokeWidth = 1,
-        WordWrap = true,
-        TextBoxStyle = "Normal",
+        CornerRadius = 8
       })
-      local numberLabel = CreateLabel(tostring(i), inputNumberRect)
-      table.insert(graphics, numberLabel)
-      inputNumberRect = inputNumberRect + XYPoint:new(0, inputNumberRect:Height())
-    end
+      table.insert(graphics, routeTableGroupBox)
 
-    local k = 1
-    for i = 1, outputCount do
-      local numberLabel = CreateLabel(tostring(i), outputNumberLabelCells[i])
-      table.insert(graphics, numberLabel)
-      local prettyName = string.format("OutputLabels~%i", i)
-      layout["OutputLabels " .. i] = CreateTextInput(outputLabelCells[i], prettyName, {
-        FontSize = 9,
-        Color = {255, 255, 255, 0},
-        TextColor = {0, 0, 0},
-        StrokeColor = {105, 105, 105},
-        StrokeWidth = 1,
-        WordWrap = true,
-        TextBoxStyle = "Normal",
-      })
-      for j = 1, inputCount do
-        prettyName = string.format("RouteMatrixButtons~Output %i~Input %i", i, j)
+      local inputLabelRect = Rectangle:new(
+        XYPoint:new(inputLabelRightPadding, routeTableRect:Top()),
+        inputLabelSize * XYPoint:new(1, inputCount)
+      )
+      local inputLabelCells = inputLabelRect:MakeRows(inputCount)
+      local inputLabelGroupBoxRect = Rectangle.FromBounds(
+        XYPoint:new(0, inputLabelRect:Top() - upperRowYSpacing),
+        XYPoint:new(
+          inputLabelRect:Right() + inputLabelRightPadding,
+          inputLabelRect:Top() + inputLabelRect:Height() + inputLabelRightPadding
+        )
+      )
+      table.insert(graphics, CreateGroupBox("Input", inputLabelGroupBoxRect, "Top"))
 
-        ---@type LayoutButton
-        local routeButton = {
-          Style = "Button",
-          ButtonStyle = "Toggle",
-          Position = routeTableCells[j][i].Position:AsArray(),
-          Size = routeTableCells[j][i].Size:AsArray(),
-          PrettyName = prettyName,
-          CornerRadius = 2,
-          Margin = 2,
-        }
-        layout[string.format("RouteMatrixButtons %i", k)] = routeButton
-        k = k + 1
+      local inputNumberRect = Rectangle:new(
+        XYPoint:new(routeTableRect:Right() + inputLabelRightPadding, routeTableRect:Top()),
+        routeTableCellSize
+      )
+
+      for i = 1, inputCount do
+        local prettyName = string.format("InputLabels~%i", i)
+        layout["InputLabels " .. i] = CreateTextInput(inputLabelCells[i], prettyName, {
+          FontSize = 9,
+          Color = {255, 255, 255, 0},
+          TextColor = {0, 0, 0},
+          StrokeColor = {105, 105, 105},
+          StrokeWidth = 1,
+          WordWrap = true,
+          TextBoxStyle = "Normal",
+        })
+        local numberLabel = CreateLabel(tostring(i), inputNumberRect)
+        table.insert(graphics, numberLabel)
+        inputNumberRect = inputNumberRect + XYPoint:new(0, inputNumberRect:Height())
+      end
+
+      local k = 1
+      for i = 1, outputCount do
+        local numberLabel = CreateLabel(tostring(i), outputNumberLabelCells[i])
+        table.insert(graphics, numberLabel)
+        local prettyName = string.format("OutputLabels~%i", i)
+        layout["OutputLabels " .. i] = CreateTextInput(outputLabelCells[i], prettyName, {
+          FontSize = 9,
+          Color = {255, 255, 255, 0},
+          TextColor = {0, 0, 0},
+          StrokeColor = {105, 105, 105},
+          StrokeWidth = 1,
+          WordWrap = true,
+          TextBoxStyle = "Normal",
+        })
+        for j = 1, inputCount do
+          prettyName = string.format("RouteMatrixButtons~Output %i~Input %i", i, j)
+
+          ---@type LayoutButton
+          local routeButton = {
+            Style = "Button",
+            ButtonStyle = "Toggle",
+            Position = routeTableCells[j][i].Position:AsArray(),
+            Size = routeTableCells[j][i].Size:AsArray(),
+            PrettyName = prettyName,
+            CornerRadius = 2,
+            Margin = 2,
+          }
+          layout[string.format("RouteMatrixButtons %i", k)] = routeButton
+          k = k + 1
+        end
       end
     end
   elseif CurrentPage == "Setup" then

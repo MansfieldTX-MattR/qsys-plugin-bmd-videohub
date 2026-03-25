@@ -21,6 +21,14 @@ function GetProperties()
       Min = 1,
       Max = 128,
     },
+    ---@type DesignPropertyEnum
+    ["Selection Controls"] = {
+      Name = "Selection Controls",
+      Type = "enum",
+      Value = "Crosspoint Buttons",
+      Choices = {"Crosspoint Buttons"},
+    },
+    ---@type DesignPropertyBoolean
     ["Show Routing Controls"] = {
       Name = "Show Routing Controls",
       Type = "boolean",
@@ -33,6 +41,7 @@ function GetProperties()
   return {
     DesignProperties["Max Input Count"],
     DesignProperties["Max Output Count"],
+    DesignProperties["Selection Controls"],
     DesignProperties["Show Routing Controls"],
   }
 end
@@ -40,4 +49,19 @@ end
 ---@class Properties
 ---@field ["Max Input Count"] TextControllerControls
 ---@field ["Max Output Count"] TextControllerControls
+---@field ["Selection Controls"] TextControllerControls
 ---@field ["Show Routing Controls"] TextControllerControls
+
+
+---@alias SelectionControlType "Crosspoint Buttons"
+
+---@param props Properties
+---@return SelectionControlType
+function GetSelectionControlType(props)
+  local selectionControlValue = props["Selection Controls"].Value
+  if selectionControlValue == "Crosspoint Buttons" then
+    return "Crosspoint Buttons"
+  else
+    error("Invalid Selection Control Type: " .. tostring(selectionControlValue))
+  end
+end

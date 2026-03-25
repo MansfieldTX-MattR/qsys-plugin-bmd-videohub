@@ -10,6 +10,8 @@ MaxInputCount = Properties["Max Input Count"].Value or 12
 MaxOutputCount = Properties["Max Output Count"].Value or 12
 ---@diagnostic disable-next-line: undefined-global
 ShowRoutingControls = Properties["Show Routing Controls"].Value
+---@diagnostic disable-next-line: undefined-global
+RoutingControlType = GetSelectionControlType(Properties)
 
 Controls.TelnetActive.Boolean = false
 Controls.Status.Value = StatusType.NotPresent
