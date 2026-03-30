@@ -12,29 +12,29 @@ function GetPrettyName(props)
   return PluginInfo.PrettyName .. " " .. PluginInfo.Version
 end
 
---[[ #include "lib/geometry.lua" ]]
+--[[ #include "src/lib/geometry.lua" ]]
 
---[[ #include "pages.lua" ]]
+--[[ #include "src/pages.lua" ]]
 
 function GetModel(props) --optional function to define model if plugin supports more than one model
   local model = {}
-  --[[ #include "model.lua" ]]
+  --[[ #include "src/model.lua" ]]
   return model
 end
 
 
---[[ #include "properties.lua" ]]
+--[[ #include "src/properties.lua" ]]
 
---[[ #include "controls.lua" ]]
+--[[ #include "src/controls.lua" ]]
 
---[[ #include "layout.lua" ]]
+--[[ #include "src/layout.lua" ]]
 
 
 --Start event based logic
 if Controls then
-  --[[ #include "lib/util.lua" ]]
-  --[[ #include "lib/events.lua" ]]
-  --[[ #include "lib/telnet.lua" ]]
-  --[[ #include "lib/commandqueue.lua" ]]
-  --[[ #include "runtime.lua" ]]
+  --[[ #include "src/lib/util.lua" ]]
+  --[[ #include "src/lib/events.lua" ]]
+  --[[ #include "src/lib/telnet.lua" ]]
+  --[[ #include "src/lib/commandqueue.lua" ]]
+  --[[ #include "src/runtime.lua" ]]
 end

@@ -3,7 +3,7 @@ require("telescope")
 
 
 ---@module "commandqueue"
-local commandqueue = require "lib.commandqueue"
+local commandqueue = require "src.lib.commandqueue"
 
 --- This is a mock implementation of the QSys Timer interface for testing purposes.
 --- No actual timing functionality is implemented, and the EventHandler is called immediately when Start is called.

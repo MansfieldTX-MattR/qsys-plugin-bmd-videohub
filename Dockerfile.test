@@ -3,8 +3,7 @@ FROM akorn/luarocks:lua5.1-alpine AS base
 RUN luarocks install telescope
 
 WORKDIR /app
-COPY *.lua ./
-COPY lib ./lib
+COPY src ./src
 COPY tests ./tests
 
 FROM base AS test

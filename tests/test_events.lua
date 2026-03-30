@@ -1,7 +1,7 @@
 require "telescope"
 
 ---@module "events"
-local events = require "lib.events"
+local events = require "src.lib.events"
 
 
 context("events", function()

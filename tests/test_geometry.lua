@@ -2,7 +2,7 @@ require("telescope")
 local telescope = require("telescope")
 
 ---@module "geometry"
-local geometry = require "lib.geometry"
+local geometry = require "src.lib.geometry"
 
 
 ---@param expected number
