@@ -145,7 +145,7 @@ function GetControlLayout(props)
   ---@param labelType "Input" | "Output"
   ---@param xOffset number
   ---@return Rectangle
-  function BuildLabelPage(labelType, xOffset)
+  function BuildLabelGrid(labelType, xOffset)
     local count = maxCounts[labelType]
     local numCols = 1
     local countPerColumn = count
@@ -215,8 +215,8 @@ function GetControlLayout(props)
     return groupBoxRect
   end
   if CurrentPage == "Labels" then
-    local inputRect = BuildLabelPage("Input", 0)
-    BuildLabelPage("Output", inputRect:Right() + 20)
+    local inputRect = BuildLabelGrid("Input", 0)
+    BuildLabelGrid("Output", inputRect:Right() + 20)
   elseif CurrentPage == "Route" then
     local inputCount = maxCounts["Input"]
     local outputCount = maxCounts["Output"]
