@@ -25,3 +25,24 @@ end
 function DebugPrint(msg)
   print("[DEBUG] "..msg)
 end
+
+---@param tbl table
+---@param indent? number
+---@return string
+function TableToString(tbl, indent)
+  indent = indent or 0
+  local indentStr = string.rep("  ", indent)
+  local result = "{\n"
+  for key, value in pairs(tbl) do
+    local keyStr = tostring(key)
+    local valueStr
+    if type(value) == "table" then
+      valueStr = TableToString(value, indent + 1)
+    else
+      valueStr = tostring(value)
+    end
+    result = result .. indentStr .. "  [" .. keyStr .. "] = " .. valueStr .. ",\n"
+  end
+  result = result .. indentStr .. "}"
+  return result
+end

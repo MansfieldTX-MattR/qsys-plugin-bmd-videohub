@@ -173,7 +173,11 @@ function CommandQueueClass:enqueue(command)
   end
   self.timerGuard = true
   self.queue:pushRight(command)
-  DebugPrint("Enqueued command: "..tostring(command)..". Queue size is now: "..self.queue:size())
+  local commandDebugStr = tostring(command)
+  if type(command) == "table" then
+    commandDebugStr = TableToString(command)
+  end
+  DebugPrint("Enqueued command: "..commandDebugStr..". Queue size is now: "..self.queue:size())
   self:retriggerTimer()
   self.timerGuard = false
 end
