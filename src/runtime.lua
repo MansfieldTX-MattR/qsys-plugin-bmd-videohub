@@ -111,7 +111,7 @@ VideoHubCommandSectionMap = {
 ---@type CommandQueueClass<CommandQueueCommand>
 CommandQueue = CommandQueueClass:new(CommandQueueTimer, 0.1)
 CommandQueue:setFormatCallback(function(commands)
-  return VideoHub.FormatMultipleCommandsWithArgs(commands)
+  return VideoHub.FormatMultipleCommandsWithArgs(commands, false)
 end)
 CommandQueue:setSendCallback(function(cmdStr)
   TelnetSendCommand("BatchCommand", cmdStr)
@@ -289,7 +289,7 @@ VideoHub = {
       for key, value in pairs(cmdArgs) do
         table.insert(cmdArgsList, {key, value})
       end
-      local cmdLines = VideoHub.FormatCommandWithArgs(cmdName, cmdArgsList, true)
+      local cmdLines = VideoHub.FormatCommandWithArgs(cmdName, cmdArgsList, false)
       table.insert(lines, cmdLines)
     end
     for _, cmdName in ipairs(finalCommandsWithoutArgs) do
