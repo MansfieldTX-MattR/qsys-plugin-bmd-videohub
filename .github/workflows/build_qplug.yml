@@ -109,7 +109,7 @@ jobs:
       run: sudo apt-get install -y mono-complete
 
     - name: Setup NuGet
-      uses: nuget/setup-nuget@v2
+      uses: nuget/setup-nuget@v3
 
     - name: Pack NuGet package
       run: nuget pack package.nuspec -OutputDirectory ./nupkg
